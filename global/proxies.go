@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
+	Queue "rapid_name_claimer/queue"
 	"strings"
 
 	"github.com/valyala/fasthttp"
@@ -15,6 +16,9 @@ import (
 // For the official queue system,
 // visit https://github.com/realTristan/FastProxy
 //////////////////////////////////////////////////////
+
+// Global Proxy Queue Variable
+var ProxyQueue *Queue.ItemQueue = Queue.Create()
 
 // The ProxyDial struct holds 3 keys
 // - Proxy *proxy -> The proxy to use

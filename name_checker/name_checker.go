@@ -183,15 +183,54 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 	}
 }
 
+// The GenerateNewToken() function is used to generate a new token then
+// add said token to the token queue.
+//
+// This only happens if the token has reached 15000 requests
+// or the token has been expired
+func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *string) {
+
+	// If the status code != 200 and the body contains expired or
+	// if the total requests counter % 15000 equals 0
+	if (respStatus != 200 && Global.Contains(body, "expired")) || totalRequests%15000 == 0 {
+
+		// Generate a new token and add it to the queue
+		// r: resp, t: token, e: error
+		var r, t, e = Global.GetAuthTokenFromExistingAccount(RequestClient)
+		if r.StatusCode() == 200 && e == nil && len(t) > 15 {
+			TokenQueue.Put(&t)
+		}
+
+		// Release the new token response
+		fasthttp.ReleaseResponse(r)
+	}
+}
+
+// The EnableTokenRefreshing() function is used to print an input
+// option for enabling token refreshing. Token refreshing is when
+// an authentication token is expired or gets used too many times,
+// a new token will be generated and added to the queue
+func EnableTokenRefreshing() bool {
+	// Print the input option
+	var tR string
+	color.Printf("\033[H\033[2J%s\n\n\033[97m ┃ Enable Token Refreshing? \033[1;34m(y/n)\033[1;97m ", Global.RapidLogoString)
+	fmt.Scan(&tR)
+
+	// Return whether the response contains a "y" for yes
+	return strings.Contains(strings.ToLower(tR), "y")
+}
+
 // The Start() function is used to start all of the
 // goroutines that will be used for sending the http
 // requests to the ubisoft endpoints
 func Start(threadCount int) {
-	// Generate the api urls
 	GenerateNameUrls()
 
 	// Define Variables
 	var (
+		// Whether to enable token refreshing
+		tokenRefreshing bool = EnableTokenRefreshing()
+
 		// sync.waitgroup for goroutines
 		waitGroup sync.WaitGroup = sync.WaitGroup{}
 
@@ -214,7 +253,7 @@ func Start(threadCount int) {
 					url string = fmt.Sprint(*UrlQueue.Get())
 
 					// The Authorization token
-					token string = fmt.Sprint(*TokenQueue.Get())
+					token string = fmt.Sprint(*TokenQueue.Grab())
 
 					// Get the slice of names
 					names []string = strings.Split(url, "&nameOnPlatform=")[1:]
@@ -224,37 +263,39 @@ func Start(threadCount int) {
 
 					// Send the http request to the ubi api endpoint
 					resp, err = CheckNamesRequest(RequestClient, &url, &token)
+
+					// The response body
+					body string = string(resp.Body())
 				)
 
 				// Update The Live Counter
 				totalRequests += randNum
 				LiveCounter(&programStartTime, &threadCount)
 
-				// if the error is nil and the status code is 200
-				if err == nil && resp.StatusCode() == 200 {
-					// Handle the response
-					go HandleResponse(RequestClient, resp, &url, &names)
-				} else
+				// Check whether the token is expired or if there's been to many calls per profile
+				// If there has, then get a new token from an existing token account
+				if tokenRefreshing {
+					GenerateNewToken(RequestClient, resp.StatusCode(), &body)
+				}
 
-				// Set the CurrentError message
-				{
-					// Define Variables
-					var (
-						// The response body
-						body string = string(resp.Body())
+				// Make sure the status code is 200
+				if !Global.Contains(&body, "expired") {
+					// Add the token back to the token queue
+					TokenQueue.Put(token)
 
-						// The error converted to a string
-						errString string = fmt.Sprint(err)
-					)
+					// if the error is nil and the status code is 200
+					if err == nil && resp.StatusCode() == 200 {
+						// Handle the response
+						go HandleResponse(RequestClient, resp, &url, &names)
 
-					// Make sure the response body doesn't contain any secretive data (aka: the api endpoint data)
-					if !Global.Contains(&body, "nameonplatform") && !Global.Contains(&errString, "nameonplatform") {
-						Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %s: %s", resp.StatusCode(), errString, body)
+					} else {
+						// Set the current error
+						Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %s: %s", resp.StatusCode(), err, body)
+
+						// Release the response and increase the error count
+						fasthttp.ReleaseResponse(resp)
+						errorCount += randNum
 					}
-
-					// Release the response and increase the error count
-					fasthttp.ReleaseResponse(resp)
-					errorCount += randNum
 				}
 
 				// For Proxyless

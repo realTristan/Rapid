@@ -2,28 +2,18 @@ package token_generator
 
 // Import Packages
 import (
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
-	"time"
 
 	Global "rapid_name_claimer/global"
-	Queue "rapid_name_claimer/queue"
 
 	"github.com/gookit/color"
 	"github.com/valyala/fasthttp"
 )
 
-// Define Global Variables
-var (
-	// Counter Variables
-	errorCount, generatedCount int = 0, 0
-
-	// Previous Accounts Queue
-	TokenAccountQueue *Queue.ItemQueue = Global.AddToQueue(Queue.Create(), "data/tokens/token_accounts.txt")
-)
+// Counter Variables
+var errorCount, generatedCount int = 0, 0
 
 // The LiveCounter() function is used to display all of
 // the stats for the token generator. This includes
@@ -34,80 +24,22 @@ func LiveCounter(tokenCount int) {
 		Global.RapidLogoString, tokenCount, Global.ProxyQueue.Size(), generatedCount, errorCount, Global.CurrentError)
 }
 
-// The GetAuthTokenFromExistingAccountRequest() function is used to get the tokens
-// from the existing accounts. (accounts found in token_accounts.txt)
-func GetAuthTokenFromExistingAccountRequest(RequestClient *fasthttp.Client, account string) (*fasthttp.Response, error) {
-	Global.SetProxy(RequestClient)
-
-	// Define Variables
-	var (
-		// Marshal the request body being sent
-		data, _ = json.Marshal(map[string]interface{}{"rememberMe": false})
-
-		// Base64 encode the accounts email:password
-		auth string = base64.StdEncoding.EncodeToString([]byte(account))
-
-		// Create a new request opbject
-		req *fasthttp.Request = Global.SetRequest("POST")
-	)
-	defer fasthttp.ReleaseRequest(req)
-
-	// Set the request url, authorization header and body
-	req.SetRequestURI(fmt.Sprintf("%sv3/profiles/sessions", Global.GetCustomUrl()))
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
-	req.SetBody(data)
-
-	// Define Variables
-	var (
-		// Create a new response object
-		resp *fasthttp.Response = Global.SetResponse(false)
-
-		// Send the http request
-		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
-	)
-	return resp, err
-}
-
 // The UsePreviousAccounts() function is used to send requests to the
 // ubisoft api and get the new session token for each of the accounts
 // in the token_accounts.txt file.
 func UsePreviousAccounts(RequestClient *fasthttp.Client, tokenCount int) {
-	for i := 0; i < TokenAccountQueue.Size(); i++ {
-		// Define variables
-		var (
-			// Get the acocunt
-			account string = fmt.Sprint(*TokenAccountQueue.Get())
-
-			// Create a json response map variable
-			respJson map[string]interface{}
-
-			// Send the request to the ubi api
-			resp, err = GetAuthTokenFromExistingAccountRequest(RequestClient, account)
-		)
+	for i := 0; i < Global.TokenAccountQueue.Size(); i++ {
+		// Send the request to the ubi api
+		var resp, token, err = Global.GetAuthTokenFromExistingAccount(RequestClient)
 		defer fasthttp.ReleaseResponse(resp)
 
-		// If no errors occured and the response
-		// status code is 200 (success)
-		if err == nil && resp.StatusCode() == 200 {
-
-			// Unmarhsal the response body to the respJson
-			// variable created above
-			json.Unmarshal(resp.Body(), &respJson)
-
-			// Get the accounts session ticket
-			if respJson["ticket"] != nil {
-
-				// Establish the authentication token using the ticket
-				var authToken string = fmt.Sprintf("Ubi_v1 t=%s", respJson["ticket"])
-
-				// Write the token to the tokens.txt file
-				Global.WriteToFile("data/tokens/tokens.txt", &authToken)
-			}
+		// Check the request status and errors
+		if resp.StatusCode() == 200 && err == nil && len(token) > 15 {
+			// Write the token to the tokens.txt file
+			// and increase the generated count
+			Global.WriteToFile("data/tokens/tokens.txt", &token)
 			generatedCount++
 		} else {
-
-			// Set the current error and increase the error count
-			Global.CurrentError = fmt.Sprintf(" >> Token Error: %d: %v: %s", resp.StatusCode(), err, string(resp.Body()))
 			errorCount++
 		}
 
@@ -143,10 +75,10 @@ func Start(tokenCount int) {
 	fmt.Scan(&tokenGenUseExistingAccounts)
 
 	// If the user said yes to using previous accounts
-	if strings.Contains(tokenGenUseExistingAccounts, "y") && !TokenAccountQueue.IsEmpty() {
+	if strings.Contains(tokenGenUseExistingAccounts, "y") && !Global.TokenAccountQueue.IsEmpty() {
 
 		// Update the token counter
-		tokenCountTotal = tokenCount + TokenAccountQueue.Size()
+		tokenCountTotal = tokenCount + Global.TokenAccountQueue.Size()
 
 		// Start the goroutine for getting previous account tokens
 		go UsePreviousAccounts(RequestClient, tokenCountTotal)

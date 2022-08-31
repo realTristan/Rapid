@@ -28,9 +28,8 @@ var (
 	// All the banned names from banned_names.txt
 	BannedNames, _ = ioutil.ReadFile("data/name_checker/banned_names.txt")
 
-	// Queues
+	// Custom Url Queue
 	CustomUrlQueue *Queue.ItemQueue = Queue.Create()
-	ProxyQueue     *Queue.ItemQueue = Queue.Create()
 
 	// Mapped data from the data.json file
 	JsonData map[string]interface{} = ReadJsonFile("data/data.json")
