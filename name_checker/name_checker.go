@@ -275,7 +275,7 @@ func Start(threadCount int) {
 				// Check whether the token is expired or if there's been to many calls per profile
 				// If there has, then get a new token from an existing token account
 				if tokenRefreshing {
-					GenerateNewToken(RequestClient, resp.StatusCode(), &body)
+					go GenerateNewToken(RequestClient, resp.StatusCode(), &body)
 				}
 
 				// Make sure the status code is 200
