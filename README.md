@@ -10,20 +10,20 @@
 
 **2.** Go to data/name_checker/names.txt and paste the names you want to check
 <br>
-&nbsp; &nbsp; ↳ Each name on a new line
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ Each name on a new line
 <br>
-		↳ To quickly generate 3/4 letter names visit http://www.unit-conversion.info/texttools/random-string-generator/
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ To quickly generate 3/4 letter names visit http://www.unit-conversion.info/texttools/random-string-generator/
 <br>
 
 **3.** Open rapid.exe and select option 3, the token generator
 <br>
 
 **4.** Next enter how many tokens you want to generate
-       	↳ I suggest generating 100+ tokens, without proxies you will be ratelimited after 7 tokens
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ I suggest generating 100+ tokens, without proxies you will be ratelimited after 7 tokens
 <br>
-        ↳ You can see these newly generated tokens in the data/name_checker/tokens.txt file
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ You can see these newly generated tokens in the data/name_checker/tokens.txt file
 <br>
-	    ↳ Using Existing Accounts will generate tokens with accounts in data/tokens/token_accounts.txt
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ Using Existing Accounts will generate tokens with accounts in data/tokens/token_accounts.txt
 <br>
 
 **5.** Close the program and re-open it then select option 1, the name claimer
@@ -31,15 +31,15 @@
 
 **6.** Select how many threads you want to use
 <br>
-    	↳ I suggest 1-100
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ I suggest 1-100
 <br>
 
 **7.** Done! You're now checking for available names and will claim them if they are available
-    	↳ The name claimer is proxyless at 1-2 threads, anything higher requires proxies
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ The name claimer is proxyless at 1-2 threads, anything higher requires proxies
 <br>
-	    ↳ Available names will appear in data/name_checker/available.txt
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ Available names will appear in data/name_checker/available.txt
 <br>
-	    ↳ Claimed names will appear in data/name_checker/claimed.txt
+&nbsp; &nbsp; &nbsp; &nbsp; ↳ Claimed names will appear in data/name_checker/claimed.txt
 
 # 📝 MongoDB
 ![Capture](https://user-images.githubusercontent.com/75189508/187750772-7b531072-983c-4636-9bf3-9a86c80d80dc.PNG)
