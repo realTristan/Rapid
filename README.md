@@ -36,6 +36,7 @@
 <br>
 
 **7.** Done! You're now checking for available names and will claim them if they are available
+<br>
 &nbsp; &nbsp; &nbsp; &nbsp; ↳ The name claimer is proxyless at 1-2 threads, anything higher requires proxies
 <br>
 &nbsp; &nbsp; &nbsp; &nbsp; ↳ Available names will appear in data/name_checker/available.txt
