@@ -45,17 +45,17 @@ func CheckedTotalAdd(requestTempAmount *int, nameAmount int) int {
 // The LiveCounter() function is used to display all of
 // the stats for the claimer. This includes checks per second,
 // available/claimed names, errors, proxy count, etc.
-func LiveCounter(programStartTime *int64, threadCount *int) {
-	var reqsPerSecond int64 = int64(totalRequests) / ((time.Now().Unix() - *programStartTime) + 1)
+func LiveCounter(programStartTime int64, threadCount int) {
+	var reqsPerSecond int64 = int64(totalRequests) / ((time.Now().Unix() - programStartTime) + 1)
 	color.Printf(
 		"\033[H\033[2J\033[0;0H%s\n\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Names \033[1;97m[\033[1;33m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Threads \033[1;97m[\033[1;35m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Proxies \033[1;97m[\u001b[30m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Available \033[1;97m[\033[1;32m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Claimed \033[1;97m[\033[1;32m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m CPS \033[1;97m[\033[1;36m%d/s\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Checked \033[1;97m[\033[1;33m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Errors \033[1;97m[\033[1;31m%d\033[1;97m]\033[1;34m\n\n \033[1;31m%s",
-		Global.RapidLogoString, nameCount, *threadCount, Global.ProxyQueue.Size(), availableNameCount, claimedNameCount, reqsPerSecond, totalRequests, errorCount, Global.CurrentError)
+		Global.RapidLogoString, nameCount, threadCount, Global.ProxyQueue.Size(), availableNameCount, claimedNameCount, reqsPerSecond, totalRequests, errorCount, Global.CurrentError)
 }
 
 // The CheckNamesRequest() function is used to send the http
 // request to the ubisoft api. It will return the response of
 // the provided url.
-func CheckNamesRequest(RequestClient *fasthttp.Client, url *string, token *string) (*fasthttp.Response, error) {
+func CheckNamesRequest(RequestClient *fasthttp.Client, url string, token string) (*fasthttp.Response, error) {
 	Global.SetProxy(RequestClient)
 
 	// Request object
@@ -63,8 +63,8 @@ func CheckNamesRequest(RequestClient *fasthttp.Client, url *string, token *strin
 	defer fasthttp.ReleaseRequest(req)
 
 	// Request data
-	req.Header.Set("Authorization", *token)
-	req.SetRequestURI(*url)
+	req.Header.Set("Authorization", token)
+	req.SetRequestURI(url)
 
 	// Acquire response and do request
 	var (
@@ -262,7 +262,7 @@ func Start(threadCount int) {
 					randNum = CheckedTotalAdd(&requestTempAmount, len(names))
 
 					// Send the http request to the ubi api endpoint
-					resp, err = CheckNamesRequest(RequestClient, &url, &token)
+					resp, err = CheckNamesRequest(RequestClient, url, token)
 
 					// The response body
 					body string = string(resp.Body())
@@ -270,7 +270,7 @@ func Start(threadCount int) {
 
 				// Update The Live Counter
 				totalRequests += randNum
-				LiveCounter(&programStartTime, &threadCount)
+				LiveCounter(programStartTime, threadCount)
 
 				// Check whether the token is expired or if there's been to many calls per profile
 				// If there has, then get a new token from an existing token account
