@@ -1,0 +1,56 @@
+{
+    "custom_claim_email": "",
+    "custom_api_urls": [
+        "https://public-ubiservices.ubi.com"
+    ],
+    "name_swap_webhook_url": "your webhook url",
+    "name_claim_webhook_url": "your webhook url",
+    "name_claim_webhook_data": {
+        "embeds": [
+            {
+                "title": "",
+                "description": "**Claimed:** {name}",
+                "image": {
+                    "url": "",
+                    "height": 0,
+                    "width": 0
+                },
+                "author": {
+                    "name": "Rapid",
+                    "url": "https://discord.gg/tuprPsrGyb",
+                    "icon_url": "https://cdn.discordapp.com/attachments/859237831964491776/998263783455723661/toppng.com-v-video-games-thread-graphic-transparent-library-pepe-monkas-2146x2147.png"
+                },
+                "timestamp": true,
+                "footer": {
+                    "text": "gn lol",
+                    "icon_url": ""
+                },
+                "color": 3759815
+            }
+        ]
+    },
+    "name_swap_webhook_data": {
+        "embeds": [
+            {
+                "title": "",
+                "description": "**Swapped:** {name}\n**Speed:** {speed}",
+                "image": {
+                    "url": "",
+                    "height": 0,
+                    "width": 0
+                },
+                "author": {
+                    "name": "Rapid",
+                    "url": "https://discord.gg/tuprPsrGyb",
+                    "icon_url": "https://cdn.discordapp.com/attachments/859237831964491776/998263783455723661/toppng.com-v-video-games-thread-graphic-transparent-library-pepe-monkas-2146x2147.png"
+                },
+                "timestamp": true,
+                "footer": {
+                    "text": "i am speed",
+                    "icon_url": ""
+                },
+                "color": 3759815
+            }
+        ]
+    }
+}
