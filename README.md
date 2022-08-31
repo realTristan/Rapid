@@ -20,7 +20,9 @@
 
 **4.** Next enter how many tokens you want to generate
        	↳ I suggest generating 100+ tokens, without proxies you will be ratelimited after 7 tokens
+<br>
         ↳ You can see these newly generated tokens in the data/name_checker/tokens.txt file
+<br>
 	    ↳ Using Existing Accounts will generate tokens with accounts in data/tokens/token_accounts.txt
 <br>
 
@@ -28,12 +30,15 @@
 <br>
 
 **6.** Select how many threads you want to use
+<br>
     	↳ I suggest 1-100
 <br>
 
 **7.** Done! You're now checking for available names and will claim them if they are available
     	↳ The name claimer is proxyless at 1-2 threads, anything higher requires proxies
+<br>
 	    ↳ Available names will appear in data/name_checker/available.txt
+<br>
 	    ↳ Claimed names will appear in data/name_checker/claimed.txt
 
 # 📝 MongoDB
