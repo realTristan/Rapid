@@ -10,7 +10,7 @@
 
 **2.** Go to data/name_checker/names.txt and paste the names you want to check
 <br>
-		↳ Each name on a new line
+&nbsp; &nbsp; ↳ Each name on a new line
 <br>
 		↳ To quickly generate 3/4 letter names visit http://www.unit-conversion.info/texttools/random-string-generator/
 <br>
