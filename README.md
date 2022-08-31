@@ -19,6 +19,7 @@
 <br>
 
 **4.** Next enter how many tokens you want to generate
+<br>
 &nbsp; &nbsp; &nbsp; &nbsp; ↳ I suggest generating 100+ tokens, without proxies you will be ratelimited after 7 tokens
 <br>
 &nbsp; &nbsp; &nbsp; &nbsp; ↳ You can see these newly generated tokens in the data/name_checker/tokens.txt file
