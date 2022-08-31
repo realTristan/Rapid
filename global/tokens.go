@@ -23,10 +23,8 @@ func GetAuthTokenFromExistingAccount(RequestClient *fasthttp.Client) (*fasthttp.
 	var (
 		// Marshal the request body being sent
 		data, _ = json.Marshal(map[string]interface{}{"rememberMe": false})
-
 		// Base64 encode the accounts email:password
 		auth string = base64.StdEncoding.EncodeToString([]byte((*TokenAccountQueue.Get()).(string)))
-
 		// Create a new request opbject
 		req *fasthttp.Request = SetRequest("POST")
 	)
@@ -41,13 +39,10 @@ func GetAuthTokenFromExistingAccount(RequestClient *fasthttp.Client) (*fasthttp.
 	var (
 		// Create a new response object
 		resp *fasthttp.Response = SetResponse(false)
-
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
-
 		// Create a json response map variable
 		respJson map[string]interface{}
-
 		// The authentication token grabbed from the account session
 		authToken string
 	)

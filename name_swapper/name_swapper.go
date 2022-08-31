@@ -59,7 +59,6 @@ func CreateNameChangeRequestObject(session map[string]interface{}, name string) 
 	var (
 		// Create Request Object
 		req *fasthttp.Request = Global.SetRequest("PUT")
-
 		// Marshal the body being sent in the request
 		data, _ = json.Marshal(map[string]interface{}{"nameOnPlatform": name})
 	)
@@ -82,7 +81,6 @@ func CheckNameChangeStatus(RequestClient *fasthttp.Client, session map[string]in
 	var (
 		// Create the request object
 		req *fasthttp.Request = Global.SetRequest("POST")
-
 		// Marshal the body being sent in the request
 		data, _ = json.Marshal(map[string]interface{}{"nameOnPlatform": session["nameOnPlatform"].(string)})
 	)
@@ -98,7 +96,6 @@ func CheckNameChangeStatus(RequestClient *fasthttp.Client, session map[string]in
 	var (
 		// Create the response object
 		resp *fasthttp.Response = Global.SetResponse(false)
-
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
 	)
@@ -114,10 +111,8 @@ func GetSession(RequestClient *fasthttp.Client, account string) (*fasthttp.Respo
 	var (
 		// Base64 encode the account email:password
 		auth string = base64.StdEncoding.EncodeToString([]byte(account))
-
 		// Create a request object
 		req *fasthttp.Request = Global.SetRequest("POST")
-
 		// Marshal the body being sent in the request
 		data, _ = json.Marshal(map[string]interface{}{"rememberMe": false})
 	)
@@ -132,7 +127,6 @@ func GetSession(RequestClient *fasthttp.Client, account string) (*fasthttp.Respo
 	var (
 		// Create a response object
 		resp *fasthttp.Response = Global.SetResponse(false)
-
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
 	)
@@ -155,7 +149,6 @@ func NameRecover(RequestClient *fasthttp.Client, name string, accountWithName st
 	var (
 		// Create a new account with the name needing recovery
 		resp, newAccount, err = Global.CreateUplayAccount(RequestClient, name, Global.JsonData["custom_claim_email"].(string))
-
 		// Create the claim string for writing to claimed.txt
 		claimString string = fmt.Sprintf("Name: %s ┃ Login: %s", name, newAccount)
 	)
@@ -165,16 +158,14 @@ func NameRecover(RequestClient *fasthttp.Client, name string, accountWithName st
 	if resp.StatusCode() == 200 && err == nil {
 		// Set the current error to the name's new email and password
 		Global.CurrentError = fmt.Sprintf(" >> Swap Failed! \033[1;97m[\033[1;31m%s\033[1;97m] => \033[1;97m[\033[1;31m%s\033[1;97m]", name, newAccount)
-
 		// And write it to the claimed.txt file
 		go Global.WriteToFile("data/name_checker/claimed.txt", &claimString)
-	} else {
-
-		// Increase the errorcount and set the current error
+	} else
+	// Increase the errorcount and set the current error
+	{
 		errorCount++
 		Global.CurrentError = fmt.Sprintf(" >> Name Recover Error: %d: %v: %s", resp.StatusCode(), err, string(resp.Body()))
 	}
-
 	// Increase error count and show the swap status
 	errorCount++
 	ShowInfo(accountWithName, accountToPutNameOn, speed)
@@ -212,13 +203,10 @@ func GetAccountReplacementName(RequestClient *fasthttp.Client, AccountWithNameSe
 			var (
 				// The url to send the http request to
 				url string = Global.GetCustomUrl() + "v3/profiles?platformType=uplay&nameOnPlatform=" + name
-
 				// The Authorization token for sending the request
 				token string = "Ubi_v1 t=" + AccountWithNameSession["ticket"].(string)
-
 				// Send the http request
 				ValidNameResp, ValidNameErr = NameChecker.CheckNamesRequest(RequestClient, url, token)
-
 				// Store the response body
 				body string = string(ValidNameResp.Body())
 			)
@@ -242,13 +230,11 @@ func GetAccountReplacementName(RequestClient *fasthttp.Client, AccountWithNameSe
 func CanCreateNewAccounts(RequestClient *fasthttp.Client, claimOriginalName string, accountWithName string, accountToPutNameOn string) {
 	// Store how many iterations to perform
 	var iterations int = 1
-
 	// If the claim original name is set to true, add an iteration
 	iterations += Global.BoolToInt(strings.Contains(claimOriginalName, "y"))
 
 	// For each of the iterations
 	for i := 0; i < iterations; i++ {
-
 		// Send a validation request to check if the user is ratelimtied
 		var resp, err = Global.AccountValidationRequest(RequestClient, Global.RandomString(25)+"@gmail.com")
 		Error(resp, err, accountWithName, accountToPutNameOn, "Account Creation (1)")
@@ -264,7 +250,6 @@ func ClaimOriginalName(RequestClient *fasthttp.Client, claimOriginalName_Name st
 	var (
 		// Create a new uplay account with the name on it
 		resp, newAccount, err = Global.CreateUplayAccount(RequestClient, claimOriginalName_Name, Global.JsonData["custom_claim_email"].(string))
-
 		// The claim string that will be used for writing in the claimed.txt file
 		claimString string = fmt.Sprintf("Name: %s ┃ Login: %s", claimOriginalName_Name, newAccount)
 	)
@@ -290,13 +275,10 @@ func Start() {
 	var (
 		// Name Variables
 		accountWithName, accountToPutNameOn, nameToSwap, claimOriginalName string = "", "", "", ""
-
 		// Client for sending the http requests
 		RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
-
 		// Waitgroup for goroutines
 		waitGroup sync.WaitGroup = sync.WaitGroup{}
-
 		// Boolean to check whether the name has been swapped or not
 		isSwapped bool = false
 	)
@@ -341,13 +323,10 @@ func Start() {
 	var (
 		// The Original Account Name
 		claimOriginalName_Name string = AccountToPutNameOnSession["nameOnPlatform"].(string)
-
 		// The Wanted Name
 		AccountWithName_Name string = AccountWithNameSession["nameOnPlatform"].(string)
-
 		// The Wanted Name's Request Object
 		AccountWithNameRequest *fasthttp.Request = CreateNameChangeRequestObject(AccountWithNameSession, replacementName)
-
 		// Track swaps for name recovery
 		swapCount int = 0
 	)
@@ -363,7 +342,6 @@ func Start() {
 	var (
 		// The Account to put the name on's request object
 		AccountToPutNameOnRequest *fasthttp.Request = CreateNameChangeRequestObject(AccountToPutNameOnSession, nameToSwap)
-
 		// The swap start time
 		startTime time.Time = time.Now()
 	)
@@ -388,10 +366,8 @@ func Start() {
 			var (
 				// Create new response object
 				resp *fasthttp.Response = Global.SetResponse(true)
-
 				// Send the http request
 				err error = RequestClient.DoTimeout(AccountToPutNameOnRequest, resp, time.Second*6)
-
 				// Get the speed of the swap
 				speed float64 = math.Round(time.Since(startTime).Seconds()*100) / 1000
 			)

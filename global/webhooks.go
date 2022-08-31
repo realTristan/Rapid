@@ -45,7 +45,6 @@ func SendWebhook(name string, speed float64, opt string, url string) {
 			CurrentError = fmt.Sprintf(" >> Send Webhook Error (2): %s: %v", name, err)
 			return
 		}
-
 		// Replace the jsonData
 		jsonData = newData
 	}
@@ -54,7 +53,6 @@ func SendWebhook(name string, speed float64, opt string, url string) {
 	if strings.Contains(jsonData, "{name}") {
 		jsonData = strings.ReplaceAll(jsonData, "{name}", name)
 	}
-
 	// Replace Embed Speed
 	if strings.Contains(jsonData, "{speed}") {
 		jsonData = strings.ReplaceAll(jsonData, "{speed}", fmt.Sprintf("%vs", speed))

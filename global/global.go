@@ -42,7 +42,7 @@ var (
 // Set the RequestClient proxy
 func SetProxy(RequestClient *fasthttp.Client) {
 	if !ProxyQueue.IsEmpty() {
-		var proxy string = fmt.Sprint(*ProxyQueue.Get())
+		var proxy string = (*ProxyQueue.Get()).(string)
 		RequestClient.Dial = HttpProxyDial(&proxy)
 	}
 }
@@ -137,7 +137,6 @@ func ReadJsonFile(fileName string) map[string]interface{} {
 	var (
 		// Result map
 		result map[string]interface{}
-
 		// Read the json file
 		jsonFile, jsonErr  = os.Open(fileName)
 		byteValue, byteErr = ioutil.ReadAll(jsonFile)
@@ -147,7 +146,6 @@ func ReadJsonFile(fileName string) map[string]interface{} {
 	if jsonErr != nil || byteErr != nil {
 		CurrentError = fmt.Sprintf(" >> Read Json Error: %s: %v: %v", fileName, jsonErr, byteErr)
 	}
-
 	// Close the json file once the function returns
 	defer jsonFile.Close()
 
@@ -203,7 +201,6 @@ func RandomString(length int) string {
 	var (
 		// Characters used in the random string
 		chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-
 		// byte result
 		b []byte = make([]byte, length)
 	)
@@ -250,11 +247,9 @@ func SetRequest(method string) *fasthttp.Request {
 	req.Header.Set("GenomeId", "de726b45-417f-476f-a3ba-d0c032a9ef2e")
 	req.Header.Set("Ubi-RequestedPlatformType", "uplay")
 	req.Header.Set("Connection", "keep-alive")
-
 	// Set the content type and method
 	req.Header.SetContentType("application/json")
 	req.Header.SetMethod(method)
-
 	// Return the request
 	return req
 }
@@ -267,7 +262,7 @@ func SetRequest(method string) *fasthttp.Request {
 // ubisoft api endpoint
 func GetCustomUrl() string {
 	if !CustomUrlQueue.IsEmpty() {
-		return fmt.Sprint(*CustomUrlQueue.Get())
+		return (*CustomUrlQueue.Get()).(string)
 	}
 	return "https://public-ubiservices.ubi.com/"
 }
@@ -279,17 +274,14 @@ func GetCustomUrls() {
 
 	// For each of the custom urls
 	for i := 0; i < len(urls); i++ {
-
 		// Make sure the url is valid
 		if strings.Contains(urls[i].(string), "https") {
-
 			// Add a slash to the end of the url
 			// if there isn't one already
 			var tempUrl string = urls[i].(string)
 			if string([]rune(tempUrl)[len(tempUrl)-1]) != "/" {
 				tempUrl += "/"
 			}
-
 			// Add the url to the custom url queue
 			CustomUrlQueue.Put(tempUrl)
 		}
@@ -310,10 +302,8 @@ func GenerateUplayAccountJSON(name string, customEmail string) ([]byte, string) 
 	var (
 		// New Account Email
 		email string = name + "." + customEmail
-
 		// New Account Password
 		password string = "rapd" + RandomString(10)
-
 		// The request body map
 		data, err = json.Marshal(map[string]interface{}{
 			"age":               "19",
@@ -333,7 +323,6 @@ func GenerateUplayAccountJSON(name string, customEmail string) ([]byte, string) 
 	if err != nil {
 		CurrentError = fmt.Sprintf(" >> Generate Uplay Account JSON Error: %s: %v", name, err)
 	}
-
 	// Return the data and the account combo
 	return data, email + ":" + password
 }
@@ -351,7 +340,6 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 	var (
 		// Create new request object
 		req *fasthttp.Request = SetRequest("POST")
-
 		// Get the request body and the account being created
 		bodyData, account = GenerateUplayAccountJSON(name, customEmail)
 	)
@@ -365,10 +353,8 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 	var (
 		// Create a new response object
 		resp *fasthttp.Response = SetResponse(false)
-
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
-
 		// Store the request body in a string variable
 		body string = string(resp.Body())
 	)
@@ -389,7 +375,6 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 
 				// If the ticket isn't empty/nil
 				if jsonData["ticket"] != nil {
-
 					// Write it to the tokens.txt file
 					var ubiTicket string = "Ubi_v1 t=" + jsonData["ticket"].(string)
 					go WriteToFile("data/tokens/tokens.txt", &ubiTicket)
@@ -418,7 +403,6 @@ func AccountValidationRequest(RequestClient *fasthttp.Client, email string) (*fa
 			})
 			return data
 		}
-
 		// Create a new request object
 		req *fasthttp.Request = SetRequest("POST")
 	)
@@ -435,7 +419,6 @@ func AccountValidationRequest(RequestClient *fasthttp.Client, email string) (*fa
 	var (
 		// Create new response object
 		resp *fasthttp.Response = SetResponse(false)
-
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
 	)

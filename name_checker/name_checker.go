@@ -16,14 +16,12 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// Variables
+// Define Global Variables
 var (
 	// Counter Variables
 	errorCount, nameCount, claimedNameCount, availableNameCount int = 0, 0, 0, 0
-
 	// Request Variables
 	requestTempAmount, totalRequests int = 0, 1
-
 	// Queues
 	UrlQueue   *Queue.ItemQueue = Queue.Create()
 	TokenQueue *Queue.ItemQueue = Global.AddToQueue(Queue.Create(), "data/tokens/tokens.txt")
@@ -62,14 +60,16 @@ func CheckNamesRequest(RequestClient *fasthttp.Client, url string, token string)
 	var req *fasthttp.Request = Global.SetRequest("GET")
 	defer fasthttp.ReleaseRequest(req)
 
-	// Request data
+	// Set the request authheader and url
 	req.Header.Set("Authorization", token)
 	req.SetRequestURI(url)
 
-	// Acquire response and do request
+	// Define Variables
 	var (
+		// Create new response object
 		resp *fasthttp.Response = Global.SetResponse(false)
-		err  error              = RequestClient.DoTimeout(req, resp, time.Second*6)
+		// Send the http request
+		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
 	)
 	return resp, err
 }
@@ -83,11 +83,9 @@ func GenerateNameUrls() {
 	var (
 		// The url endpoint
 		url string = Global.GetCustomUrl() + "v3/profiles?platformType=uplay"
-
 		// The amount of names in the names.txt file
 		fileNameCount int64          = Global.FileNewLineCount("data/name_checker/names.txt")
 		nameFile      *bufio.Scanner = Global.ReadFile("data/name_checker/names.txt")
-
 		// Temp Variables
 		tempNameCount       int64  = 0
 		nameFileReplacement string = ""
@@ -97,8 +95,9 @@ func GenerateNameUrls() {
 	for nameFile.Scan() {
 		var name string = nameFile.Text()
 		tempNameCount++
-		if len(name) > 2 {
 
+		// If the name length is valid
+		if len(name) > 2 {
 			// If the name is valid
 			if Global.IsValidUplayName(name) {
 				nameFileReplacement += (name + "\n")
@@ -129,10 +128,8 @@ func ClaimName(RequestClient *fasthttp.Client, name string) {
 	var (
 		// Custom Claim Email from data.json
 		customClaimEmail string = Global.JsonData["custom_claim_email"].(string)
-
 		// Send the http request to the ubi create account endpoint
 		resp, account, err = Global.CreateUplayAccount(RequestClient, name, customClaimEmail)
-
 		// The claim string to write to the claimed.txt file
 		claimString string = fmt.Sprintf("Name: %s ┃ Login: %s", name, account)
 	)
@@ -170,7 +167,6 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 	// Handle Response
 	var body string = string(resp.Body())
 	for i := 0; i < len(*names); i++ {
-
 		// Check if the body contains the name
 		if !Global.Contains(&body, fmt.Sprintf("\"nameonplatform\":\"%s\"", (*names)[i])) {
 			availableNameCount++
@@ -189,7 +185,6 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 // This only happens if the token has reached 15000 requests
 // or the token has been expired
 func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *string) {
-
 	// If the status code != 200 and the body contains expired or
 	// if the total requests counter % 15000 equals 0
 	if (respStatus != 200 && Global.Contains(body, "expired")) || totalRequests%15000 == 0 {
@@ -200,7 +195,6 @@ func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *stri
 		if r.StatusCode() == 200 && e == nil && len(t) > 15 {
 			TokenQueue.Put(&t)
 		}
-
 		// Release the new token response
 		fasthttp.ReleaseResponse(r)
 	}
@@ -230,10 +224,8 @@ func Start(threadCount int) {
 	var (
 		// Whether to enable token refreshing
 		tokenRefreshing bool = EnableTokenRefreshing()
-
 		// sync.waitgroup for goroutines
 		waitGroup sync.WaitGroup = sync.WaitGroup{}
-
 		// Track the checks per second
 		programStartTime int64 = time.Now().Unix()
 	)
@@ -250,20 +242,15 @@ func Start(threadCount int) {
 				// Define Variables
 				var (
 					// The ubi api endpoint
-					url string = fmt.Sprint(*UrlQueue.Get())
-
+					url string = (*UrlQueue.Get()).(string)
 					// The Authorization token
-					token string = fmt.Sprint(*TokenQueue.Grab())
-
+					token string = (*TokenQueue.Grab()).(string)
 					// Get the slice of names
 					names []string = strings.Split(url, "&nameOnPlatform=")[1:]
-
 					// Get the randum number created by the checked count spoofer
 					randNum = CheckedTotalAdd(&requestTempAmount, len(names))
-
 					// Send the http request to the ubi api endpoint
 					resp, err = CheckNamesRequest(RequestClient, url, token)
-
 					// The response body
 					body string = string(resp.Body())
 				)
@@ -277,7 +264,6 @@ func Start(threadCount int) {
 				if tokenRefreshing {
 					go GenerateNewToken(RequestClient, resp.StatusCode(), &body)
 				}
-
 				// Make sure the status code is 200
 				if !Global.Contains(&body, "expired") {
 					// Add the token back to the token queue

@@ -50,13 +50,11 @@ func GenerateConnectUrl(proxyDial *proxyDial) (string, string) {
 
 	// If the Proxy Contains an @ (user:pass authentication)
 	if strings.Contains(proxyDial.proxy, "@") {
-
 		// Split the proxy and encode the auth
 		var (
 			AuthProxySplit []string = strings.Split(proxyDial.proxy, "@")
 			Auth           string   = Base64Encode(AuthProxySplit[0])
 		)
-
 		// Append the proxy authentication to the url
 		url += fmt.Sprintf("Proxy-Authorization: Basic %s\r\n", Auth)
 		proxyDial.proxy = AuthProxySplit[1]
@@ -75,17 +73,14 @@ func EstablishConnection(proxyDial *proxyDial) (*net.Conn, error) {
 		ConnectionUrl, proxy = GenerateConnectUrl(proxyDial)
 		Connection, err      = fasthttp.Dial(proxy)
 	)
-
 	// Connection Error
 	if err != nil {
 		return nil, err
 	}
-
 	// Write to the connection url
 	if _, err := Connection.Write([]byte(ConnectionUrl)); err != nil {
 		return nil, err
 	}
-
 	// Set the connection response, release it once resp is no longer needed
 	var resp *fasthttp.Response = SetResponse(true)
 
@@ -97,7 +92,6 @@ func EstablishConnection(proxyDial *proxyDial) (*net.Conn, error) {
 		Connection.Close() // Close Connection
 		return nil, err
 	}
-
 	// Establish Connection Failed
 	if resp.Header.StatusCode() != 200 {
 		Connection.Close() // Close Connection
@@ -116,7 +110,6 @@ func HttpProxyDial(proxy *string) fasthttp.DialFunc {
 			address: addr,
 			proxy:   *proxy,
 		}
-
 		// Return the connection
 		var Connection, err = EstablishConnection(proxyDial)
 		return *Connection, err
@@ -131,7 +124,6 @@ func SetProxiesToCorrectFormat() {
 	var (
 		// Proxy file data
 		file *bufio.Scanner = ReadFile("data/proxies.txt")
-
 		// The string to replace the current proxies.txt
 		// data with
 		result string = ""
@@ -139,20 +131,18 @@ func SetProxiesToCorrectFormat() {
 
 	// For each line in the proxies.txt file
 	for file.Scan() {
-
 		// Check whether the proxy has authentication
 		var proxy string = file.Text()
 		if strings.Contains(proxy, "@") {
-
 			// Define Variables
 			var (
 				// Split the proxy
 				splitString []string = strings.Split(proxy, "@")
-
 				// Variables for
 				userPass string
 				ipPort   string
 			)
+
 			// If the first split is the IP:Port
 			if ContainsAmount(splitString[0], ".") == 3 {
 				ipPort = splitString[0]
@@ -161,7 +151,6 @@ func SetProxiesToCorrectFormat() {
 				ipPort = splitString[1]
 				userPass = splitString[0]
 			}
-
 			// Store formatted proxy in string
 			proxy = userPass + "@" + ipPort
 		}

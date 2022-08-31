@@ -60,10 +60,8 @@ func Start(tokenCount int) {
 	var (
 		// Client for sending http requests
 		RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
-
 		// Waitgroup for goroutines
 		waitGroup sync.WaitGroup = sync.WaitGroup{}
-
 		// Token Counter
 		tokenCountTotal int = tokenCount
 	)
@@ -76,17 +74,14 @@ func Start(tokenCount int) {
 
 	// If the user said yes to using previous accounts
 	if strings.Contains(tokenGenUseExistingAccounts, "y") && !Global.TokenAccountQueue.IsEmpty() {
-
 		// Update the token counter
 		tokenCountTotal = tokenCount + Global.TokenAccountQueue.Size()
-
 		// Start the goroutine for getting previous account tokens
 		go UsePreviousAccounts(RequestClient, tokenCountTotal)
 	}
 
 	// Iterate over the provided Token Count
 	for i := 0; i < tokenCount; i++ {
-
 		// Run everything below in a goroutine
 		go func() {
 			// Define Variables
@@ -101,11 +96,7 @@ func Start(tokenCount int) {
 
 			// If no errors occured and the response status code is 200 (succes)
 			if err == nil && resp.StatusCode() == 200 {
-
-				// Write the created account to the token_accounts.txt file
 				go Global.WriteToFile("data/tokens/token_accounts.txt", &account)
-
-				// Update generated counter
 				generatedCount++
 			} else {
 

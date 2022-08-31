@@ -24,14 +24,12 @@ func ConnectToClient() *mongo.Client {
 	var (
 		// Your mongo db uri
 		uri string = "mongo client"
-
 		// MongoDB Client Options
 		clientOptions = options.Client().ApplyURI(uri).SetTLSConfig(&tls.Config{
 			InsecureSkipVerify: true,
 			MinVersion:         tls.VersionTLS12,
 			MaxVersion:         tls.VersionTLS12,
 		})
-
 		// Connect to the client
 		client, err = mongo.Connect(context.TODO(), clientOptions)
 	)
@@ -40,7 +38,6 @@ func ConnectToClient() *mongo.Client {
 	if client.Ping(context.TODO(), readpref.Primary()) != nil || err != nil {
 		os.Exit(1)
 	}
-
 	// Return the client connection
 	return client
 }
@@ -85,10 +82,8 @@ func GetHashedHWID() (string, error) {
 // will be used for adding the users hwid and data into
 // the mongodb database.
 func AuthenticationByToken(accessTokenCollection *mongo.Collection, hwidCollection *mongo.Collection, hwid string, token string) bool {
-
 	// Check if the users hwid doesn't already exist in the database
 	if !ExistsInCollection(hwidCollection, "hwid", hwid) {
-
 		// Check if the token is valid
 		if ExistsInCollection(accessTokenCollection, "token", token) {
 
