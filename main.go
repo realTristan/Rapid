@@ -2,7 +2,10 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os/exec"
+	"runtime"
+	"time"
 
 	AccountChecker "rapid_name_claimer/account_checker"
 	Global "rapid_name_claimer/global"
@@ -13,13 +16,18 @@ import (
 	"github.com/gookit/color"
 )
 
-/*
 // Within the init() function, check the users authentication
+// and initalize the rand seed and max goroutines
 func init() {
 	// Set rand seed and max goroutines
 	rand.Seed(time.Now().UnixNano())
 	runtime.GOMAXPROCS(runtime.NumCPU())
+}
 
+////////////////////////////////////////////////
+// PUT THIS INSIDE init() IF USING THE MONGODB
+///////////////////////////////////////////////
+/*
 	// Check if user is authenticated
 	var hwid, getHashedHWIDError = UserAuth.GetHashedHWID()
 	if getHashedHWIDError != nil {
@@ -57,7 +65,6 @@ func init() {
 			fmt.Scanln()
 		}
 	}
-}
 */
 
 // Main function
