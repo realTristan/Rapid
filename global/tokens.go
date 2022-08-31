@@ -33,8 +33,8 @@ func GetAuthTokenFromExistingAccount(RequestClient *fasthttp.Client) (*fasthttp.
 	defer fasthttp.ReleaseRequest(req)
 
 	// Set the request url, authorization header and body
-	req.SetRequestURI(fmt.Sprintf("%sv3/profiles/sessions", GetCustomUrl()))
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
+	req.SetRequestURI(GetCustomUrl() + "v3/profiles/sessions")
+	req.Header.Set("Authorization", "Basic "+auth)
 	req.SetBody(data)
 
 	// Define Variables
@@ -62,7 +62,7 @@ func GetAuthTokenFromExistingAccount(RequestClient *fasthttp.Client) (*fasthttp.
 		// Get the accounts session ticket
 		if respJson["ticket"] != nil {
 			// Establish the authentication token using the ticket
-			authToken = fmt.Sprintf("Ubi_v1 t=%s", respJson["ticket"])
+			authToken = "Ubi_v1 t=" + respJson["ticket"].(string)
 		}
 	} else {
 		// Set the current error and increase the error count

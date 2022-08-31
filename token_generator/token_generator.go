@@ -92,7 +92,7 @@ func Start(tokenCount int) {
 			// Define Variables
 			var (
 				// The Randomized Name
-				name string = fmt.Sprintf("rapd%s", Global.RandomString(11))
+				name string = "rapd" + Global.RandomString(11)
 
 				// Create a new account
 				resp, account, err = Global.CreateUplayAccount(RequestClient, name, "")

@@ -53,8 +53,8 @@ func CreateRequestObject(auth string) *fasthttp.Request {
 	)
 
 	// Set the request url, headers and body
-	req.SetRequestURI(fmt.Sprintf("%sv3/profiles/sessions", Global.GetCustomUrl()))
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
+	req.SetRequestURI(Global.GetCustomUrl() + "v3/profiles/sessions")
+	req.Header.Set("Authorization", "Basic "+auth)
 	req.SetBody(data)
 
 	// Return the request object

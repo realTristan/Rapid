@@ -82,7 +82,7 @@ func CheckNamesRequest(RequestClient *fasthttp.Client, url string, token string)
 func GenerateNameUrls() {
 	var (
 		// The url endpoint
-		url string = fmt.Sprintf("%sv3/profiles?platformType=uplay", Global.GetCustomUrl())
+		url string = Global.GetCustomUrl() + "v3/profiles?platformType=uplay"
 
 		// The amount of names in the names.txt file
 		fileNameCount int64          = Global.FileNewLineCount("data/name_checker/names.txt")
@@ -101,14 +101,14 @@ func GenerateNameUrls() {
 
 			// If the name is valid
 			if Global.IsValidUplayName(name) {
-				nameFileReplacement += fmt.Sprintf("%s\n", name)
+				nameFileReplacement += (name + "\n")
 				nameCount++
-				url += fmt.Sprintf("&nameOnPlatform=%s", name)
+				url += ("&nameOnPlatform=" + name)
 
 				// Add the url the queue if 50 names has been reached
 				if nameCount%50 == 0 || tempNameCount == fileNameCount {
 					UrlQueue.Put(url)
-					url = fmt.Sprintf("%sv3/profiles?platformType=uplay", Global.GetCustomUrl())
+					url = Global.GetCustomUrl() + "%sv3/profiles?platformType=uplay"
 				}
 			}
 		}

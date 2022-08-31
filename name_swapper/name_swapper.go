@@ -65,8 +65,8 @@ func CreateNameChangeRequestObject(session map[string]interface{}, name string) 
 	)
 
 	// Set the request url, headers and body
-	req.SetRequestURI(fmt.Sprintf("%sv3/profiles/%s", Global.GetCustomUrl(), session["profileId"].(string)))
-	req.Header.Set("Authorization", fmt.Sprintf("Ubi_v1 t=%s", session["ticket"]))
+	req.SetRequestURI(Global.GetCustomUrl() + "v3/profiles/" + session["profileId"].(string))
+	req.Header.Set("Authorization", "Ubi_v1 t="+session["ticket"].(string))
 	req.Header.Set("Ubi-SessionId", session["sessionId"].(string))
 	req.SetBody(data)
 
@@ -90,7 +90,7 @@ func CheckNameChangeStatus(RequestClient *fasthttp.Client, session map[string]in
 
 	// Set the request url, headers and body
 	req.SetRequestURI(fmt.Sprintf("%sv3/profiles/%s/validateUpdate", Global.GetCustomUrl(), session["profileId"].(string)))
-	req.Header.Set("Authorization", fmt.Sprintf("Ubi_v1 t=%s", session["ticket"]))
+	req.Header.Set("Authorization", "Ubi_v1 t="+session["ticket"].(string))
 	req.Header.Set("Ubi-SessionId", session["sessionId"].(string))
 	req.SetBody(data)
 
@@ -124,8 +124,8 @@ func GetSession(RequestClient *fasthttp.Client, account string) (*fasthttp.Respo
 	defer fasthttp.ReleaseRequest(req)
 
 	// Set the request url, headers and body being sent
-	req.SetRequestURI(fmt.Sprintf("%sv3/profiles/sessions", Global.GetCustomUrl()))
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", auth))
+	req.SetRequestURI(Global.GetCustomUrl() + "v3/profiles/sessions")
+	req.Header.Set("Authorization", "Basic "+auth)
 	req.SetBody(data)
 
 	// Define Variables
@@ -194,7 +194,7 @@ func GetAccountReplacementName(RequestClient *fasthttp.Client, AccountWithNameSe
 	// Set custom replacement name to random if invalid
 	if name == "r" || name == "'r'" {
 		// Generate a random name
-		name = fmt.Sprintf("rapd%s", Global.RandomString(11))
+		name = "rapd" + Global.RandomString(11)
 	} else {
 
 		// If the name isn't valid (eg: starts with a number, etc.)
@@ -211,13 +211,13 @@ func GetAccountReplacementName(RequestClient *fasthttp.Client, AccountWithNameSe
 			// Define Variables
 			var (
 				// The url to send the http request to
-				url string = fmt.Sprintf("%sv3/profiles?platformType=uplay&nameOnPlatform=%s", Global.GetCustomUrl(), name)
+				url string = Global.GetCustomUrl() + "v3/profiles?platformType=uplay&nameOnPlatform=" + name
 
 				// The Authorization token for sending the request
-				token string = fmt.Sprintf("Ubi_v1 t=%s", AccountWithNameSession["ticket"])
+				token string = "Ubi_v1 t=" + AccountWithNameSession["ticket"].(string)
 
 				// Send the http request
-				ValidNameResp, ValidNameErr = NameChecker.CheckNamesRequest(RequestClient, &url, &token)
+				ValidNameResp, ValidNameErr = NameChecker.CheckNamesRequest(RequestClient, url, token)
 
 				// Store the response body
 				body string = string(ValidNameResp.Body())
@@ -250,7 +250,7 @@ func CanCreateNewAccounts(RequestClient *fasthttp.Client, claimOriginalName stri
 	for i := 0; i < iterations; i++ {
 
 		// Send a validation request to check if the user is ratelimtied
-		var resp, err = Global.AccountValidationRequest(RequestClient, fmt.Sprintf("%s@gmail.com", Global.RandomString(25)))
+		var resp, err = Global.AccountValidationRequest(RequestClient, Global.RandomString(25)+"@gmail.com")
 		Error(resp, err, accountWithName, accountToPutNameOn, "Account Creation (1)")
 	}
 }

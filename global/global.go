@@ -182,7 +182,7 @@ func WriteToFile(fileName string, data *string) {
 		CurrentError = fmt.Sprintf(" >> Write To File Error: %s: %s: %v", fileName, *data, err)
 	} else {
 		// Write the data to the file
-		file.WriteString(fmt.Sprintf("\n%s", *data))
+		file.WriteString("\n" + *data)
 	}
 	// Close the file
 	file.Close()
@@ -358,7 +358,7 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 	defer fasthttp.ReleaseRequest(req)
 
 	// Set the Request url and body
-	req.SetRequestURI(fmt.Sprintf("%sv3/users", GetCustomUrl()))
+	req.SetRequestURI(GetCustomUrl() + "v3/users")
 	req.SetBody(bodyData)
 
 	// Acquire response and do request
@@ -391,7 +391,7 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 				if jsonData["ticket"] != nil {
 
 					// Write it to the tokens.txt file
-					var ubiTicket string = fmt.Sprintf("Ubi_v1 t=%s", jsonData["ticket"])
+					var ubiTicket string = "Ubi_v1 t=" + jsonData["ticket"].(string)
 					go WriteToFile("data/tokens/tokens.txt", &ubiTicket)
 				}
 			}()
@@ -428,7 +428,7 @@ func AccountValidationRequest(RequestClient *fasthttp.Client, email string) (*fa
 	SetProxy(RequestClient)
 
 	// Set the request url and body
-	req.SetRequestURI(fmt.Sprintf("%sv3/users/validatecreation", GetCustomUrl()))
+	req.SetRequestURI(GetCustomUrl() + "v3/users/validatecreation")
 	req.SetBody(GenerateBody(email))
 
 	// Define Variables
