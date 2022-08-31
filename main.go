@@ -75,10 +75,8 @@ func main() {
 	var (
 		// Thread Count
 		threadCount int
-
 		// Selection
 		option int
-
 		// Question for selection
 		question string = "\033[97m ┃ How many threads?\033[1;34m "
 	)
