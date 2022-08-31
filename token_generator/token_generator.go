@@ -42,7 +42,6 @@ func UsePreviousAccounts(RequestClient *fasthttp.Client, tokenCount int) {
 		} else {
 			errorCount++
 		}
-
 		// Show the token generator status and info
 		LiveCounter(tokenCount)
 	}
@@ -88,7 +87,6 @@ func Start(tokenCount int) {
 			var (
 				// The Randomized Name
 				name string = "rapd" + Global.RandomString(11)
-
 				// Create a new account
 				resp, account, err = Global.CreateUplayAccount(RequestClient, name, "")
 			)
@@ -96,15 +94,15 @@ func Start(tokenCount int) {
 
 			// If no errors occured and the response status code is 200 (succes)
 			if err == nil && resp.StatusCode() == 200 {
+				// Write the new account to the token_account.txt file
 				go Global.WriteToFile("data/tokens/token_accounts.txt", &account)
 				generatedCount++
-			} else {
-
-				// Set the current error and increase the error count
+			} else
+			// Set the current error and increase the error count
+			{
 				Global.CurrentError = fmt.Sprintf(" >> Token Error: %d: %v: %s", resp.StatusCode(), err, string(resp.Body()))
 				errorCount++
 			}
-
 			// Show the token generator status and info
 			LiveCounter(tokenCountTotal)
 		}()
