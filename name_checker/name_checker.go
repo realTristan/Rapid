@@ -179,15 +179,12 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 	}
 }
 
-// The GenerateNewToken() function is used to generate a new token then
+// The GenerateNewToken() function is used to generate a new token using
+// a previous account from the data/tokens/token_accounts.txt file, then
 // add said token to the token queue.
-//
-// This only happens if the token has reached 15000 requests
-// or the token has been expired
 func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *string) {
-	// If the status code != 200 and the body contains expired or
-	// if the total requests counter % 15000 equals 0
-	if (respStatus != 200 && Global.Contains(body, "expired")) || totalRequests%15000 == 0 {
+	// If the status code != 200 and the body contains expired
+	if respStatus != 200 && Global.Contains(body, "expired") {
 
 		// Generate a new token and add it to the queue
 		// r: resp, t: token, e: error
