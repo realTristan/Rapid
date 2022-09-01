@@ -39,14 +39,6 @@ var (
 	RapidLogoString    string = "\033[1;34m\n ┃ ██████╗  █████╗ ██████╗ ██╗██████╗\n ┃ ██╔══██╗██╔══██╗██╔══██╗██║██╔══██╗\n ┃ ██████╔╝███████║██████╔╝██║██║  ██║\n ┃ ██╔══██╗██╔══██║██╔═══╝ ██║██║  ██║\n ┃ ██║  ██║██║  ██║██║     ██║██████╔╝\n ┃ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝"
 )
 
-// Set the RequestClient proxy
-func SetProxy(RequestClient *fasthttp.Client) {
-	if !ProxyQueue.IsEmpty() {
-		var proxy string = (*ProxyQueue.Get()).(string)
-		RequestClient.Dial = HttpProxyDial(&proxy)
-	}
-}
-
 // Function to check if a string contains another
 func Contains(a *string, b interface{}) bool {
 	return strings.Contains(strings.ToLower(fmt.Sprint(*a)), strings.ToLower(fmt.Sprint(b)))

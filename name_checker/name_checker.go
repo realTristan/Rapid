@@ -276,7 +276,7 @@ func Start(threadCount int) {
 
 					} else {
 						// Set the current error
-						Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %s: %s", resp.StatusCode(), err, body)
+						Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %v: %s", resp.StatusCode(), err, body)
 
 						// Release the response and increase the error count
 						fasthttp.ReleaseResponse(resp)

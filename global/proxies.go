@@ -28,6 +28,14 @@ type proxyDial struct {
 	address string
 }
 
+// Set the RequestClient proxy
+func SetProxy(RequestClient *fasthttp.Client) {
+	if !ProxyQueue.IsEmpty() {
+		var proxy string = (*ProxyQueue.Get()).(string)
+		RequestClient.Dial = HttpProxyDial(proxy)
+	}
+}
+
 // Base64 encode a string
 func Base64Encode(s string) string {
 	return base64.StdEncoding.EncodeToString([]byte(s))
@@ -102,13 +110,13 @@ func EstablishConnection(proxyDial *proxyDial) (*net.Conn, error) {
 }
 
 // Function to use a proxy dial [user:pass@proxy:port]
-func HttpProxyDial(proxy *string) fasthttp.DialFunc {
+func HttpProxyDial(proxy string) fasthttp.DialFunc {
 	// Return the dial function
 	return func(addr string) (net.Conn, error) {
 		// Create ProxyDial struct object
 		var proxyDial *proxyDial = &proxyDial{
 			address: addr,
-			proxy:   *proxy,
+			proxy:   proxy,
 		}
 		// Return the connection
 		var Connection, err = EstablishConnection(proxyDial)
