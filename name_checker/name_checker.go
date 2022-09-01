@@ -107,7 +107,7 @@ func GenerateNameUrls() {
 				// Add the url the queue if 50 names has been reached
 				if nameCount%50 == 0 || tempNameCount == fileNameCount {
 					UrlQueue.Put(url)
-					url = Global.GetCustomUrl() + "%sv3/profiles?platformType=uplay"
+					url = Global.GetCustomUrl() + "v3/profiles?platformType=uplay"
 				}
 			}
 		}
