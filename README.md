@@ -3,7 +3,7 @@
 
 # ❓ About
 - This was made for Educational Purposes Only
-- Rapid Claimer is a lightning fast and easy-to-use ubisoft name claimer, account checker and name swapper. Follow the steps below to get started with using it!
+- Rapid Claimer is a lightning fast and easy-to-use ubisoft name claimer, account checker and name swapper. Follow the steps below to get started with using it! 
 
 # 🔎 Name Claimer Usage
 **1.** If you have proxies, add them to the data/name_checker.proxies.txt file
