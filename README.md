@@ -1,5 +1,5 @@
 # Rapid ![Stars](https://img.shields.io/github/stars/realTristan/Rapid?color=brightgreen) ![Watchers](https://img.shields.io/github/watchers/realTristan/Rapid?label=Watchers)
-![banner](https://user-images.githubusercontent.com/75189508/187748755-5cf9f773-6d38-4325-9eea-a3148ac56457.png)
+![banner](https://user-images.githubusercontent.com/75189508/188035367-834ddbbf-647f-4e64-9c78-974099015940.png)
 
 # ❓ About
 - This was made for Educational Purposes Only
