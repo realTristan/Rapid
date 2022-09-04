@@ -48,7 +48,7 @@ func SetProxyResponse(sB bool) *fasthttp.Response {
 }
 
 // The GenerateConnectUrl() function will create the Dial Url for the proxy
-func GenerateConnectUrl(pd *ProxyDial) (string, string) {
+func (pd *ProxyDial) GenerateConnectUrl() (string, string) {
 	var url string = fmt.Sprintf("CONNECT %s HTTP/1.1\r\n", pd.address)
 
 	// If the Proxy Contains an @ (user:pass authentication)
@@ -73,7 +73,7 @@ func GenerateConnectUrl(pd *ProxyDial) (string, string) {
 func EstablishConnection(pd *ProxyDial) (net.Conn, error) {
 	// Generate a connection url and create a connection to the proxy
 	var (
-		ConnectionUrl, proxy = GenerateConnectUrl(pd)
+		ConnectionUrl, proxy = pd.GenerateConnectUrl()
 		Connection, err      = fasthttp.Dial(proxy)
 	)
 	// Connection Error
