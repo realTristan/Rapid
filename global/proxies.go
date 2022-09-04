@@ -84,10 +84,9 @@ func EstablishConnection(pd *ProxyDial) (net.Conn, error) {
 	if _, err := Connection.Write([]byte(ConnectionUrl)); err != nil {
 		return nil, err
 	}
-	// Set the connection response, release it once resp is no longer needed
-	var resp *fasthttp.Response = SetResponse(true)
-
-	// Release response once the connection has been established
+	// Set the connection response, release it
+	// once the response is no longer needed
+	var resp *fasthttp.Response = fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseResponse(resp)
 
 	// Connection Reader Error
@@ -96,7 +95,7 @@ func EstablishConnection(pd *ProxyDial) (net.Conn, error) {
 		return nil, err
 	}
 	// Establish Connection Failed
-	if resp.Header.StatusCode() != 200 {
+	if resp.StatusCode() != 200 {
 		Connection.Close() // Close Connection
 		return nil, fmt.Errorf("unable to establish a connection to %s", proxy)
 	}
