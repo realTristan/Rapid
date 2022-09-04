@@ -254,7 +254,7 @@ func SetRequest(method string) *fasthttp.Request {
 // ubisoft api endpoint
 func GetCustomUrl() string {
 	if !CustomUrlQueue.IsEmpty() {
-		return (*CustomUrlQueue.Get()).(string)
+		return CustomUrlQueue.Get().(string)
 	}
 	return "https://public-ubiservices.ubi.com/"
 }

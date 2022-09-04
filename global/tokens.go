@@ -24,7 +24,7 @@ func GetAuthTokenFromExistingAccount(RequestClient *fasthttp.Client) (*fasthttp.
 		// Marshal the request body being sent
 		data, _ = json.Marshal(map[string]interface{}{"rememberMe": false})
 		// Base64 encode the accounts email:password
-		auth string = base64.StdEncoding.EncodeToString([]byte((*TokenAccountQueue.Get()).(string)))
+		auth string = base64.StdEncoding.EncodeToString([]byte(TokenAccountQueue.Get().(string)))
 		// Create a new request opbject
 		req *fasthttp.Request = SetRequest("POST")
 	)

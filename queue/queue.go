@@ -1,29 +1,25 @@
 package queue
 
 // Import Packages
-import (
-	"sync"
-
-	"github.com/cheekybits/genny/generic"
-)
+import "sync"
 
 //////////////////////////////////////////////////////
 // For the official queue system,
 // visit https://github.com/realTristan/GoQueue
 //////////////////////////////////////////////////////
 
-// Type Item generic.Type
+// Type Item interface{}
 //
 //		The 'Item' Type is the type of variables that will be going inside the queue slice
 //	 The Item is declared as interface so it is possible to have multiple types
 //		   within the Queue Slice
-type Item generic.Type
+type Item interface{}
 
 // type ItemQueue struct
 //
-//		The 'ItemQueue' Struct contains the []'Type Item generic.Type' slice
+//		The 'ItemQueue' Struct contains the []'Type Item interface{}' slice
 //	 This struct holds two keys,
-//	    - items -> the []'Type Item generic.Type' slice
+//	    - items -> the []'Type Item interface{}' slice
 //	    - mutex -> the mutex lock which prevents overwrites and data corruption
 //				  ↳ We use RWMutex instead of Mutex as it's better for majority read slices
 type ItemQueue struct {
@@ -110,27 +106,27 @@ func (q *ItemQueue) Put(i Item) {
 //	then remove it from the front
 //
 // The function returns the first item of the ItemQueue
-func (q *ItemQueue) Get() *Item {
+func (q *ItemQueue) Get() Item {
 	var item Item
 	q.secure(func() {
 		item = q.items[0]
 		q.items = append(q.items, q.items[0])
 		q.items = q.items[1:]
 	})
-	return &item
+	return item
 }
 
 // q.Grab() -> Item
 // The Grab() function will return the first item of the ItemQueue then
 //
 //	remove it from said ItemQueue
-func (q *ItemQueue) Grab() *Item {
+func (q *ItemQueue) Grab() Item {
 	var item Item
 	q.secure(func() {
 		item = q.items[0]
 		q.items = q.items[1:]
 	})
-	return &item
+	return item
 }
 
 // q.Clear() -> None

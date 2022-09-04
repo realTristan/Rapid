@@ -153,7 +153,7 @@ func Start(threadCount int) {
 					// Define Variables
 					var (
 						// Get the combo from the account queue
-						account string = (*AccountQueue.Grab()).(string)
+						account string = AccountQueue.Grab().(string)
 						// Send the validation request using the request client and email
 						resp, err = Global.AccountValidationRequest(RequestClient, strings.Split(account, ":")[0])
 					)

@@ -12,18 +12,13 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-//////////////////////////////////////////////////////
-// For the official queue system,
-// visit https://github.com/realTristan/FastProxy
-//////////////////////////////////////////////////////
-
 // Global Proxy Queue Variable
 var ProxyQueue *Queue.ItemQueue = Queue.Create()
 
 // The ProxyDial struct holds 3 keys
 // - Proxy *proxy -> The proxy to use
 // - Address *string -> The incoming dial address
-type proxyDial struct {
+type ProxyDial struct {
 	proxy   string
 	address string
 }
@@ -31,7 +26,7 @@ type proxyDial struct {
 // Set the RequestClient proxy
 func SetProxy(RequestClient *fasthttp.Client) {
 	if !ProxyQueue.IsEmpty() {
-		var proxy string = (*ProxyQueue.Get()).(string)
+		var proxy string = ProxyQueue.Get().(string)
 		RequestClient.Dial = HttpProxyDial(proxy)
 	}
 }
@@ -53,32 +48,32 @@ func SetProxyResponse(sB bool) *fasthttp.Response {
 }
 
 // The GenerateConnectUrl() function will create the Dial Url for the proxy
-func GenerateConnectUrl(proxyDial *proxyDial) (string, string) {
-	var url string = fmt.Sprintf("CONNECT %s HTTP/1.1\r\n", proxyDial.address)
+func GenerateConnectUrl(pd *ProxyDial) (string, string) {
+	var url string = fmt.Sprintf("CONNECT %s HTTP/1.1\r\n", pd.address)
 
 	// If the Proxy Contains an @ (user:pass authentication)
-	if strings.Contains(proxyDial.proxy, "@") {
+	if strings.Contains(pd.proxy, "@") {
 		// Split the proxy and encode the auth
 		var (
-			AuthProxySplit []string = strings.Split(proxyDial.proxy, "@")
+			AuthProxySplit []string = strings.Split(pd.proxy, "@")
 			Auth           string   = Base64Encode(AuthProxySplit[0])
 		)
 		// Append the proxy authentication to the url
 		url += fmt.Sprintf("Proxy-Authorization: Basic %s\r\n", Auth)
-		proxyDial.proxy = AuthProxySplit[1]
+		pd.proxy = AuthProxySplit[1]
 	}
 	url += "\r\n"
-	return url, proxyDial.proxy
+	return url, pd.proxy
 }
 
 // The EstablishConnection() function is the dial function that returns
 // a fasthttp.Dial object
 //
 // This function will create a connection url then send a connection request
-func EstablishConnection(proxyDial *proxyDial) (*net.Conn, error) {
+func EstablishConnection(pd *ProxyDial) (net.Conn, error) {
 	// Generate a connection url and create a connection to the proxy
 	var (
-		ConnectionUrl, proxy = GenerateConnectUrl(proxyDial)
+		ConnectionUrl, proxy = GenerateConnectUrl(pd)
 		Connection, err      = fasthttp.Dial(proxy)
 	)
 	// Connection Error
@@ -106,7 +101,7 @@ func EstablishConnection(proxyDial *proxyDial) (*net.Conn, error) {
 		return nil, fmt.Errorf("unable to establish a connection to %s", proxy)
 	}
 	// Return Connection and no error
-	return &Connection, nil
+	return Connection, nil
 }
 
 // Function to use a proxy dial [user:pass@proxy:port]
@@ -114,13 +109,12 @@ func HttpProxyDial(proxy string) fasthttp.DialFunc {
 	// Return the dial function
 	return func(addr string) (net.Conn, error) {
 		// Create ProxyDial struct object
-		var proxyDial *proxyDial = &proxyDial{
+		var pd *ProxyDial = &ProxyDial{
 			address: addr,
 			proxy:   proxy,
 		}
 		// Return the connection
-		var Connection, err = EstablishConnection(proxyDial)
-		return *Connection, err
+		return EstablishConnection(pd)
 	}
 }
 

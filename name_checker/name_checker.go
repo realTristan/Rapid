@@ -239,9 +239,9 @@ func Start(threadCount int) {
 				// Define Variables
 				var (
 					// The ubi api endpoint
-					url string = (*UrlQueue.Get()).(string)
+					url string = UrlQueue.Get().(string)
 					// The Authorization token
-					token string = (*TokenQueue.Grab()).(string)
+					token string = TokenQueue.Grab().(string)
 					// Get the slice of names
 					names []string = strings.Split(url, "&nameOnPlatform=")[1:]
 					// Get the randum number created by the checked count spoofer
