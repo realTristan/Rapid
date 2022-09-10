@@ -30,12 +30,12 @@ var (
 // The CheckedTotalAdd() function is used to spoof
 // the total request count. This helps with hiding
 // how the names are checked.
-func CheckedTotalAdd(requestTempAmount *int, nameAmount int) int {
+func CheckedTotalAdd(requestTempAmount int, nameAmount int) int {
 	var randNum int = 0
-	*requestTempAmount += nameAmount
-	if *requestTempAmount > 1 {
-		randNum = rand.Intn(*requestTempAmount-1) + 1
-		*requestTempAmount -= randNum
+	requestTempAmount += nameAmount
+	if requestTempAmount > 1 {
+		randNum = rand.Intn(requestTempAmount-1) + 1
+		requestTempAmount -= randNum
 	}
 	return randNum
 }
@@ -245,7 +245,7 @@ func Start(threadCount int) {
 					// Get the slice of names
 					names []string = strings.Split(url, "&nameOnPlatform=")[1:]
 					// Get the randum number created by the checked count spoofer
-					randNum = CheckedTotalAdd(&requestTempAmount, len(names))
+					randNum = CheckedTotalAdd(requestTempAmount, len(names))
 					// Send the http request to the ubi api endpoint
 					resp, err = CheckNamesRequest(RequestClient, url, token)
 					// The response body
