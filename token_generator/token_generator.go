@@ -60,7 +60,7 @@ func Start(tokenCount int) {
 		// Client for sending http requests
 		RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
 		// Waitgroup for goroutines
-		waitGroup sync.WaitGroup = sync.WaitGroup{}
+		waitGroup *sync.WaitGroup = &sync.WaitGroup{}
 		// Token Counter
 		tokenCountTotal int = tokenCount
 	)
@@ -72,7 +72,7 @@ func Start(tokenCount int) {
 	fmt.Scan(&tokenGenUseExistingAccounts)
 
 	// If the user said yes to using previous accounts
-	if strings.Contains(tokenGenUseExistingAccounts, "y") && !Global.TokenAccountQueue.IsEmpty() {
+	if strings.Contains(tokenGenUseExistingAccounts, "y") && Global.TokenAccountQueue.IsNotEmpty() {
 		// Update the token counter
 		tokenCountTotal = tokenCount + Global.TokenAccountQueue.Size()
 		// Start the goroutine for getting previous account tokens

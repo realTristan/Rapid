@@ -30,14 +30,14 @@ var (
 // The CheckedTotalAdd() function is used to spoof
 // the total request count. This helps with hiding
 // how the names are checked.
-func CheckedTotalAdd(requestTempAmount int, nameAmount int) int {
+func CheckedTotalAdd(requestTempAmount *int, nameAmount int) (*int, *int) {
 	var randNum int = 0
-	requestTempAmount += nameAmount
-	if requestTempAmount > 1 {
-		randNum = rand.Intn(requestTempAmount-1) + 1
-		requestTempAmount -= randNum
+	*requestTempAmount += nameAmount
+	if *requestTempAmount > 1 {
+		randNum = rand.Intn(*requestTempAmount-1) + 1
+		*requestTempAmount -= randNum
 	}
-	return randNum
+	return requestTempAmount, &randNum
 }
 
 // The LiveCounter() function is used to display all of
@@ -182,15 +182,16 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 // The GenerateNewToken() function is used to generate a new token using
 // a previous account from the data/tokens/token_accounts.txt file, then
 // add said token to the token queue.
-func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *string) {
+func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *string, token string) {
 	// If the status code != 200 and the body contains expired
-	if respStatus != 200 && Global.Contains(body, "expired") {
+	if respStatus != 200 && (Global.Contains(body, "expired") || Global.Contains(body, "many calls per profile")) {
 
 		// Generate a new token and add it to the queue
 		// r: resp, t: token, e: error
 		var r, t, e = Global.GetAuthTokenFromExistingAccount(RequestClient)
 		if r.StatusCode() == 200 && e == nil && len(t) > 15 {
-			TokenQueue.Put(&t)
+			TokenQueue.Put(t)
+			TokenQueue.Remove(token)
 		}
 		// Release the new token response
 		fasthttp.ReleaseResponse(r)
@@ -222,7 +223,7 @@ func Start(threadCount int) {
 		// Whether to enable token refreshing
 		tokenRefreshing bool = EnableTokenRefreshing()
 		// sync.waitgroup for goroutines
-		waitGroup sync.WaitGroup = sync.WaitGroup{}
+		waitGroup *sync.WaitGroup = &sync.WaitGroup{}
 		// Track the checks per second
 		programStartTime int64 = time.Now().Unix()
 	)
@@ -241,11 +242,11 @@ func Start(threadCount int) {
 					// The ubi api endpoint
 					url string = UrlQueue.Get().(string)
 					// The Authorization token
-					token string = TokenQueue.Grab().(string)
+					token string = TokenQueue.Get().(string)
 					// Get the slice of names
 					names []string = strings.Split(url, "&nameOnPlatform=")[1:]
 					// Get the randum number created by the checked count spoofer
-					randNum = CheckedTotalAdd(requestTempAmount, len(names))
+					_requestTempAmount, randNum = CheckedTotalAdd(&requestTempAmount, len(names))
 					// Send the http request to the ubi api endpoint
 					resp, err = CheckNamesRequest(RequestClient, url, token)
 					// The response body
@@ -253,37 +254,28 @@ func Start(threadCount int) {
 				)
 
 				// Update The Live Counter
-				totalRequests += randNum
+				requestTempAmount = *_requestTempAmount
+				totalRequests += *randNum
 				LiveCounter(programStartTime, threadCount)
 
 				// Check whether the token is expired or if there's been to many calls per profile
 				// If there has, then get a new token from an existing token account
 				if tokenRefreshing {
-					go GenerateNewToken(RequestClient, resp.StatusCode(), &body)
-				}
-				// Make sure the status code is 200
-				if !Global.Contains(&body, "expired") {
-					// Add the token back to the token queue
-					TokenQueue.Put(token)
-
-					// if the error is nil and the status code is 200
-					if err == nil && resp.StatusCode() == 200 {
-						// Handle the response
-						go HandleResponse(RequestClient, resp, &url, &names)
-
-					} else {
-						// Set the current error
-						Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %v: %s", resp.StatusCode(), err, body)
-
-						// Release the response and increase the error count
-						fasthttp.ReleaseResponse(resp)
-						errorCount += randNum
-					}
+					go GenerateNewToken(RequestClient, resp.StatusCode(), &body, token)
 				}
 
-				// For Proxyless
-				if threadCount <= 3 {
-					time.Sleep(time.Millisecond * time.Duration(120/threadCount))
+				// if the error is nil and the status code is 200
+				if err == nil && resp.StatusCode() == 200 {
+					// Handle the response
+					go HandleResponse(RequestClient, resp, &url, &names)
+
+				} else {
+					// Set the current error
+					Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %v: %s", resp.StatusCode(), err, body)
+
+					// Release the response and increase the error count
+					errorCount += *randNum
+					fasthttp.ReleaseResponse(resp)
 				}
 			}
 		}()

@@ -25,7 +25,7 @@ type ProxyDial struct {
 
 // Set the RequestClient proxy
 func SetProxy(RequestClient *fasthttp.Client) {
-	if !ProxyQueue.IsEmpty() {
+	if ProxyQueue.IsNotEmpty() {
 		var proxy string = ProxyQueue.Get().(string)
 		RequestClient.Dial = HttpProxyDial(proxy)
 	}

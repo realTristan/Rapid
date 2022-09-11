@@ -74,11 +74,9 @@ func main() {
 	// Define Variables
 	var (
 		// Thread Count
-		threadCount int
+		threadCount int = 0
 		// Selection
 		option int
-		// Question for selection
-		question string = "\033[97m ┃ How many threads?\033[1;34m "
 	)
 
 	// Change Terminal Title
@@ -94,11 +92,14 @@ func main() {
 
 	// Get Thread/Token Count
 	if option == 1 || option == 3 || option == 4 {
-		if option == 4 {
-			question = "\033[97m ┃ How many tokens?\033[1;34m "
+		for threadCount > 100 || threadCount < 1 {
+			if option == 4 {
+				color.Printf("\033[H\033[2J%s\n\n\033[97m ┃ How many tokens?\033[1;34m ", Global.RapidLogoString)
+			} else {
+				color.Printf("\033[H\033[2J%s\n\033[1;34m ┃ \033[1;31mMax 100 Threads\n\n\033[97m ┃ How many threads?\033[1;34m ", Global.RapidLogoString)
+			}
+			fmt.Scan(&threadCount)
 		}
-		color.Printf("\033[H\033[2J%s\n\n%s", Global.RapidLogoString, question)
-		fmt.Scan(&threadCount)
 	}
 
 	// Use option response

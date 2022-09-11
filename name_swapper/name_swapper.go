@@ -278,7 +278,7 @@ func Start() {
 		// Client for sending the http requests
 		RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
 		// Waitgroup for goroutines
-		waitGroup sync.WaitGroup = sync.WaitGroup{}
+		waitGroup *sync.WaitGroup = &sync.WaitGroup{}
 		// Boolean to check whether the name has been swapped or not
 		isSwapped bool = false
 	)

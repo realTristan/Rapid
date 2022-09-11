@@ -133,7 +133,7 @@ func Start(threadCount int) {
 		// Used for tracking requests per second
 		programStartTime int64 = time.Now().Unix()
 		// Wait group for goroutines
-		waitGroup sync.WaitGroup = sync.WaitGroup{}
+		waitGroup *sync.WaitGroup = &sync.WaitGroup{}
 	)
 	waitGroup.Add(1)
 
@@ -149,7 +149,7 @@ func Start(threadCount int) {
 				LiveCounter(&programStartTime, threadCount)
 
 				// If the account queue isn't empty
-				if !AccountQueue.IsEmpty() {
+				if AccountQueue.IsNotEmpty() {
 					// Define Variables
 					var (
 						// Get the combo from the account queue
