@@ -90,16 +90,19 @@ func main() {
 	color.Print("\033[97m ┃  [\033[1;34m1\033[97m] Name Claimer\n ┃\n ┃  \033[97m[\033[1;34m2\033[97m] Name Swapper\n ┃\n ┃  \033[97m[\033[1;34m3\033[97m] Account Checker\n ┃\n ┃  \033[97m[\033[1;34m4\033[97m] Token Generator\n ┃\n\n   >> \033[1;34m")
 	fmt.Scan(&option)
 
-	// Get Thread/Token Count
-	if option == 1 || option == 3 || option == 4 {
+	// Get Thread Count
+	if option == 1 || option == 3 {
+		// If the inputted threadcount is 0 or greater than 100
 		for threadCount > 100 || threadCount < 1 {
-			if option == 4 {
-				color.Printf("\033[H\033[2J%s\n\n\033[97m ┃ How many tokens?\033[1;34m ", Global.RapidLogoString)
-			} else {
-				color.Printf("\033[H\033[2J%s\n\033[1;34m ┃ \033[1;31mMax 100 Threads\n\n\033[97m ┃ How many threads?\033[1;34m ", Global.RapidLogoString)
-			}
+			color.Printf("\033[H\033[2J%s\n\033[1;34m ┃ \033[1;31mMax 100 Threads\n\n\033[97m ┃ How many threads?\033[1;34m ", Global.RapidLogoString)
 			fmt.Scan(&threadCount)
 		}
+	} else
+
+	// Get Token Count
+	if option == 4 {
+		color.Printf("\033[H\033[2J%s\n\n\033[97m ┃ How many tokens?\033[1;34m ", Global.RapidLogoString)
+		fmt.Scan(&threadCount)
 	}
 
 	// Use option response
