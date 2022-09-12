@@ -19,10 +19,10 @@ import (
 // Define Global Variables
 var (
 	// Counter Variables
-	hitCount, errorCount int   = 0, 0
 	totalRequests        int64 = 1
+	hitCount, errorCount int   = 0, 0
 	// Amount of accounts in combos.txt
-	accountCount int64 = Global.FileNewLineCount("data/account_checker/combos.txt")
+	accountCount int = Global.FileNewLineCount("data/account_checker/combos.txt")
 	// Account Combos Queue
 	AccountQueue *Queue.ItemQueue = Global.AddToQueue(Queue.Create(), "data/account_checker/combos.txt")
 )
@@ -142,7 +142,7 @@ func Start(threadCount int) {
 		// Run everything below in a goroutine
 		go func() {
 			// Request Client for sending http requests
-			var RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
+			var RequestClient *fasthttp.Client = Global.SetClient()
 			// Infinite loop
 			for {
 				// Display the checker info

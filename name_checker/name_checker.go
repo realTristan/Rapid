@@ -4,7 +4,7 @@ package name_checker
 import (
 	"bufio"
 	"fmt"
-	"math/rand"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -18,27 +18,18 @@ import (
 
 // Define Global Variables
 var (
+	// Files
+	availableFile, _ = os.OpenFile("data/name_checker/available.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	claimedFile, _   = os.OpenFile("data/name_checker/claimed.txt", os.O_APPEND|os.O_WRONLY, 0644)
+
 	// Counter Variables
-	errorCount, nameCount, claimedNameCount, availableNameCount int = 0, 0, 0, 0
-	// Request Variables
-	requestTempAmount, totalRequests int = 0, 1
+	nameCount, claimedNameCount, availableNameCount int = 0, 0, 0
+	errorCount, tokenRefreshCount, totalRequests    int = 0, 0, 1
+
 	// Queues
 	UrlQueue   *Queue.ItemQueue = Queue.Create()
 	TokenQueue *Queue.ItemQueue = Global.AddToQueue(Queue.Create(), "data/tokens/tokens.txt")
 )
-
-// The CheckedTotalAdd() function is used to spoof
-// the total request count. This helps with hiding
-// how the names are checked.
-func CheckedTotalAdd(requestTempAmount *int, nameAmount int) (*int, *int) {
-	var randNum int = 0
-	*requestTempAmount += nameAmount
-	if *requestTempAmount > 1 {
-		randNum = rand.Intn(*requestTempAmount-1) + 1
-		*requestTempAmount -= randNum
-	}
-	return requestTempAmount, &randNum
-}
 
 // The LiveCounter() function is used to display all of
 // the stats for the claimer. This includes checks per second,
@@ -46,8 +37,8 @@ func CheckedTotalAdd(requestTempAmount *int, nameAmount int) (*int, *int) {
 func LiveCounter(programStartTime int64, threadCount int) {
 	var reqsPerSecond int64 = int64(totalRequests) / ((time.Now().Unix() - programStartTime) + 1)
 	color.Printf(
-		"\033[H\033[2J\033[0;0H%s\n\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Names \033[1;97m[\033[1;33m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Threads \033[1;97m[\033[1;35m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Proxies \033[1;97m[\u001b[30m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Available \033[1;97m[\033[1;32m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Claimed \033[1;97m[\033[1;32m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m CPS \033[1;97m[\033[1;36m%d/s\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Checked \033[1;97m[\033[1;33m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Errors \033[1;97m[\033[1;31m%d\033[1;97m]\033[1;34m\n\n \033[1;31m%s",
-		Global.RapidLogoString, nameCount, threadCount, Global.ProxyQueue.Size(), availableNameCount, claimedNameCount, reqsPerSecond, totalRequests, errorCount, Global.CurrentError)
+		"\033[H\033[2J\033[0;0H%s\n\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Names \033[1;97m[\033[1;33m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Threads \033[1;97m[\033[1;35m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Proxies \033[1;97m[\u001b[30m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Available \033[1;97m[\033[1;32m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Claimed \033[1;97m[\033[1;32m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m CPS \033[1;97m[\033[1;36m%d/s\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Checked \033[1;97m[\033[1;33m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m\033[1;37m\033[1;34m Token Refreshes \033[1;97m[\033[1;35m%d\033[1;97m]\033[1;34m\n\033[1;37m ┃ \033[1;34m Errors \033[1;97m[\033[1;31m%d\033[1;97m]\033[1;34m\n\n \033[1;31m%s",
+		Global.RapidLogoString, nameCount, threadCount, Global.ProxyQueue.Size(), availableNameCount, claimedNameCount, reqsPerSecond, totalRequests, tokenRefreshCount, errorCount, Global.CurrentError)
 }
 
 // The CheckNamesRequest() function is used to send the http
@@ -84,10 +75,10 @@ func GenerateNameUrls() {
 		// The url endpoint
 		url string = Global.GetCustomUrl() + "v3/profiles?platformType=uplay"
 		// The amount of names in the names.txt file
-		fileNameCount int64          = Global.FileNewLineCount("data/name_checker/names.txt")
+		fileNameCount int            = Global.FileNewLineCount("data/name_checker/names.txt")
 		nameFile      *bufio.Scanner = Global.ReadFile("data/name_checker/names.txt")
 		// Temp Variables
-		tempNameCount       int64  = 0
+		tempNameCount       int    = 0
 		nameFileReplacement string = ""
 	)
 
@@ -144,7 +135,7 @@ func ClaimName(RequestClient *fasthttp.Client, name string) {
 		go Global.SendWebhook(name, 0, "claim", Global.RapidServerWebhook)
 
 		// Write to the claimed.txt file, the claim string
-		Global.WriteToFile("data/name_checker/claimed.txt", &claimString)
+		claimedFile.WriteString("\n" + claimString)
 	} else
 
 	// Set the error to the name claims response text and status code
@@ -161,20 +152,20 @@ func ClaimName(RequestClient *fasthttp.Client, name string) {
 // which ones are present in the response body.
 //
 // The names that are NOT present in the body are available.
-func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url *string, names *[]string) {
+func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url string, names []string) {
 	defer fasthttp.ReleaseResponse(resp)
 
 	// Handle Response
 	var body string = string(resp.Body())
-	for i := 0; i < len(*names); i++ {
+	for i := 0; i < len(names); i++ {
 		// Check if the body contains the name
-		if !Global.Contains(&body, fmt.Sprintf("\"nameonplatform\":\"%s\"", (*names)[i])) {
+		if !Global.Contains(&body, fmt.Sprintf("\"nameonplatform\":\"%s\"", (names)[i])) {
 			availableNameCount++
 
 			// If it doesn't , claim the name and write the name
 			// to the available.txt file
-			go ClaimName(RequestClient, (*names)[i])
-			Global.WriteToFile("data/name_checker/available.txt", &((*names)[i]))
+			go ClaimName(RequestClient, (names)[i])
+			availableFile.WriteString("\n" + (names)[i])
 		}
 	}
 }
@@ -182,20 +173,17 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 // The GenerateNewToken() function is used to generate a new token using
 // a previous account from the data/tokens/token_accounts.txt file, then
 // add said token to the token queue.
-func GenerateNewToken(RequestClient *fasthttp.Client, respStatus int, body *string, token string) {
-	// If the status code != 200 and the body contains expired
-	if respStatus != 200 && (Global.Contains(body, "expired") || Global.Contains(body, "many calls per profile")) {
-
-		// Generate a new token and add it to the queue
-		// r: resp, t: token, e: error
-		var r, t, e = Global.GetAuthTokenFromExistingAccount(RequestClient)
-		if r.StatusCode() == 200 && e == nil && len(t) > 15 {
-			TokenQueue.Put(t)
-			TokenQueue.Remove(token)
-		}
-		// Release the new token response
-		fasthttp.ReleaseResponse(r)
+func GenerateNewToken(RequestClient *fasthttp.Client, token string) {
+	// Generate a new token and add it to the queue
+	// r: resp, t: token, e: error
+	var r, t, e = Global.GetAuthTokenFromExistingAccount(RequestClient)
+	if r.StatusCode() == 200 && e == nil && len(t) > 15 {
+		TokenQueue.Put(t)
+		TokenQueue.Remove(token)
+		tokenRefreshCount++
 	}
+	// Release the new token response
+	fasthttp.ReleaseResponse(r)
 }
 
 // The EnableTokenRefreshing() function is used to print an input
@@ -233,7 +221,7 @@ func Start(threadCount int) {
 	for i := 0; i < threadCount; i++ {
 		go func() {
 			// Create a requestclient for sending requests
-			var RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
+			var RequestClient *fasthttp.Client = Global.SetClient()
 
 			// While loop
 			for {
@@ -245,36 +233,31 @@ func Start(threadCount int) {
 					token string = TokenQueue.Get().(string)
 					// Get the slice of names
 					names []string = strings.Split(url, "&nameOnPlatform=")[1:]
-					// Get the randum number created by the checked count spoofer
-					_requestTempAmount, randNum = CheckedTotalAdd(&requestTempAmount, len(names))
 					// Send the http request to the ubi api endpoint
 					resp, err = CheckNamesRequest(RequestClient, url, token)
-					// The response body
-					body string = string(resp.Body())
 				)
 
 				// Update The Live Counter
-				requestTempAmount = *_requestTempAmount
-				totalRequests += *randNum
+				totalRequests += len(names)
 				LiveCounter(programStartTime, threadCount)
 
 				// Check whether the token is expired or if there's been to many calls per profile
 				// If there has, then get a new token from an existing token account
-				if tokenRefreshing {
-					go GenerateNewToken(RequestClient, resp.StatusCode(), &body, token)
-				}
+				if tokenRefreshing && (resp.StatusCode() != 200 || (totalRequests-1)%(100*len(names)) == 0) {
+					go GenerateNewToken(RequestClient, token)
+				} else
 
 				// if the error is nil and the status code is 200
 				if err == nil && resp.StatusCode() == 200 {
 					// Handle the response
-					go HandleResponse(RequestClient, resp, &url, &names)
+					go HandleResponse(RequestClient, resp, url, names)
 
 				} else {
 					// Set the current error
-					Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %v: %s", resp.StatusCode(), err, body)
+					Global.CurrentError = fmt.Sprintf(" >> Name Check Error: %d: %v: %s", resp.StatusCode(), err, string(resp.Body()))
 
 					// Release the response and increase the error count
-					errorCount += *randNum
+					errorCount += len(names)
 					fasthttp.ReleaseResponse(resp)
 				}
 			}

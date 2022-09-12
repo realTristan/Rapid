@@ -23,7 +23,7 @@ var (
 	CurrentError string
 
 	// Client for sending discord webhooks
-	WebhookRequestClient *fasthttp.Client = SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
+	WebhookRequestClient *fasthttp.Client = SetClient()
 
 	// All the banned names from banned_names.txt
 	BannedNames, _ = ioutil.ReadFile("data/name_checker/banned_names.txt")
@@ -63,28 +63,6 @@ func IsValidUplayName(name string) bool {
 	return len(name) > 2 && IsAlphaChar(rune(name[0])) && !Contains(&bannedNames, name)
 }
 
-// The ContainsAmount() function is used to check how many
-// times the s: string variables contains the sub: string
-// variable.
-func ContainsAmount(s string, sub string) int {
-	var total, temp int
-	for i := 0; i < len(s); i++ {
-		if s[i] == sub[0] {
-			temp += 1
-			for n := 1; n < len(sub); n++ {
-				if sub[n] == s[i+n] {
-					temp += 1
-				}
-			}
-			if temp == len(sub) {
-				total += 1
-			}
-		}
-		temp = 0
-	}
-	return total
-}
-
 // The AddToQueue() function is used to read each line in
 // the provided file and add each line to it's corresponding
 // queue. (which was provided in the func params)
@@ -105,12 +83,11 @@ func AddToQueue(queue *Queue.ItemQueue, fileName string) *Queue.ItemQueue {
 
 // The FileNewLineCount() function is used to count
 // how many lines are in the provided file
-func FileNewLineCount(fileName string) int64 {
+func FileNewLineCount(fileName string) int {
 	// Define Variables
 	var (
 		// Counter variable
-		count int64 = 0
-
+		count int = 0
 		// File data scanner
 		file *bufio.Scanner = ReadFile(fileName)
 	)
@@ -130,14 +107,9 @@ func ReadJsonFile(fileName string) map[string]interface{} {
 		// Result map
 		result map[string]interface{}
 		// Read the json file
-		jsonFile, jsonErr  = os.Open(fileName)
-		byteValue, byteErr = ioutil.ReadAll(jsonFile)
+		jsonFile, _  = os.Open(fileName)
+		byteValue, _ = ioutil.ReadAll(jsonFile)
 	)
-
-	// Set the CurrentError if any errors have occured
-	if jsonErr != nil || byteErr != nil {
-		CurrentError = fmt.Sprintf(" >> Read Json Error: %s: %v: %v", fileName, jsonErr, byteErr)
-	}
 	// Close the json file once the function returns
 	defer jsonFile.Close()
 
@@ -151,12 +123,8 @@ func ReadJsonFile(fileName string) map[string]interface{} {
 // the content within the provided file.
 func ReadFile(fileName string) *bufio.Scanner {
 	// Open the file
-	var file, err = os.OpenFile(fileName, os.O_RDONLY, os.ModePerm)
+	var file, _ = os.OpenFile(fileName, os.O_RDONLY, os.ModePerm)
 
-	// Set the CurrentError if any errors have occured
-	if err != nil {
-		CurrentError = fmt.Sprintf(" >> Read File Error: %s: %v", fileName, err)
-	}
 	// Return a scanner for the file
 	return bufio.NewScanner(file)
 }
@@ -180,11 +148,8 @@ func WriteToFile(fileName string, data *string) {
 
 // The OverWriteToFile() function is used to replace
 // all the data in the provided file with the provided data
-func OverwriteToFile(fileName string, data *string) {
-	var err error = ioutil.WriteFile(fileName, []byte(*data), 0644)
-	if err != nil {
-		CurrentError = fmt.Sprintf(" >> Overwrite File Error: %s: %s: %v", fileName, *data, err)
-	}
+func OverwriteToFile(fileName string, data *string) error {
+	return ioutil.WriteFile(fileName, []byte(*data), 0644)
 }
 
 // The RandomString() function is used to generate
@@ -197,7 +162,7 @@ func RandomString(length int) string {
 		b []byte = make([]byte, length)
 	)
 	// For the provided range
-	for i := range b {
+	for i := 0; i < length; i++ {
 		// Set the index in the byte to a random character
 		b[i] = chars[rand.Intn(len(chars))]
 	}
@@ -208,9 +173,9 @@ func RandomString(length int) string {
 // The SetClient() function is used to establish a new
 // fasthttp request client used for sending
 // any http request
-func SetClient(dial fasthttp.DialFunc) *fasthttp.Client {
+func SetClient() *fasthttp.Client {
 	return &fasthttp.Client{
-		Dial:                dial,
+		Dial:                (&fasthttp.TCPDialer{Concurrency: 4096}).Dial,
 		TLSConfig:           &tls.Config{InsecureSkipVerify: true},
 		MaxConnsPerHost:     4096,
 		ReadTimeout:         time.Second * 5,
@@ -297,7 +262,7 @@ func GenerateUplayAccountJSON(name string, customEmail string) ([]byte, string) 
 		// New Account Password
 		password string = "rapd" + RandomString(10)
 		// The request body map
-		data, err = json.Marshal(map[string]interface{}{
+		data, _ = json.Marshal(map[string]interface{}{
 			"age":               "19",
 			"confirmedEmail":    email,
 			"email":             email,
@@ -311,10 +276,6 @@ func GenerateUplayAccountJSON(name string, customEmail string) ([]byte, string) 
 		})
 	)
 
-	// Set the current error
-	if err != nil {
-		CurrentError = fmt.Sprintf(" >> Generate Uplay Account JSON Error: %s: %v", name, err)
-	}
 	// Return the data and the account combo
 	return data, email + ":" + password
 }
@@ -381,6 +342,9 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 // The AccountValidationRequest() function is used to check whether
 // the provided email is valid or not
 func AccountValidationRequest(RequestClient *fasthttp.Client, email string) (*fasthttp.Response, error) {
+	// Request Proxy
+	SetProxy(RequestClient)
+
 	// Define Variables
 	var (
 		// Function for generating the request body
@@ -399,9 +363,6 @@ func AccountValidationRequest(RequestClient *fasthttp.Client, email string) (*fa
 		req *fasthttp.Request = SetRequest("POST")
 	)
 	defer fasthttp.ReleaseRequest(req)
-
-	// Request Proxy
-	SetProxy(RequestClient)
 
 	// Set the request url and body
 	req.SetRequestURI(GetCustomUrl() + "v3/users/validatecreation")

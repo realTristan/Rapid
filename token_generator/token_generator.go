@@ -3,6 +3,7 @@ package token_generator
 // Import Packages
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 
@@ -12,8 +13,15 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-// Counter Variables
-var errorCount, generatedCount int = 0, 0
+// Define Global Variables
+var (
+	// Counter Variables
+	errorCount, generatedCount int = 0, 0
+
+	// Files
+	tokenFile, _         = os.OpenFile("data/tokens/tokens.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	tokenAccountsFile, _ = os.OpenFile("data/tokens/token_accounts.txt", os.O_APPEND|os.O_WRONLY, 0644)
+)
 
 // The LiveCounter() function is used to display all of
 // the stats for the token generator. This includes
@@ -37,7 +45,7 @@ func UsePreviousAccounts(RequestClient *fasthttp.Client, tokenCount int) {
 		if resp.StatusCode() == 200 && err == nil && len(token) > 15 {
 			// Write the token to the tokens.txt file
 			// and increase the generated count
-			Global.WriteToFile("data/tokens/tokens.txt", &token)
+			tokenFile.WriteString("\n" + token)
 			generatedCount++
 		} else {
 			errorCount++
@@ -58,7 +66,7 @@ func Start(tokenCount int) {
 	// Define Variables
 	var (
 		// Client for sending http requests
-		RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
+		RequestClient *fasthttp.Client = Global.SetClient()
 		// Waitgroup for goroutines
 		waitGroup *sync.WaitGroup = &sync.WaitGroup{}
 		// Token Counter
@@ -95,7 +103,7 @@ func Start(tokenCount int) {
 			// If no errors occured and the response status code is 200 (succes)
 			if err == nil && resp.StatusCode() == 200 {
 				// Write the new account to the token_account.txt file
-				go Global.WriteToFile("data/tokens/token_accounts.txt", &account)
+				tokenAccountsFile.WriteString("\n" + account)
 				generatedCount++
 			} else
 			// Set the current error and increase the error count

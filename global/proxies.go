@@ -47,6 +47,28 @@ func SetProxyResponse(sB bool) *fasthttp.Response {
 	return r
 }
 
+// The ContainsAmount() function is used to check how many
+// times the s: string variables contains the sub: string
+// variable.
+func ContainsAmount(s string, sub string) int {
+	var total, temp int
+	for i := 0; i < len(s); i++ {
+		if s[i] == sub[0] {
+			temp += 1
+			for n := 1; n < len(sub); n++ {
+				if sub[n] == s[i+n] {
+					temp += 1
+				}
+			}
+			if temp == len(sub) {
+				total += 1
+			}
+		}
+		temp = 0
+	}
+	return total
+}
+
 // The GenerateConnectUrl() function will create the Dial Url for the proxy
 func (pd *ProxyDial) GenerateConnectUrl() (string, string) {
 	var url string = fmt.Sprintf("CONNECT %s HTTP/1.1\r\n", pd.address)

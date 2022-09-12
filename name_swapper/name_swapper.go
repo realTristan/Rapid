@@ -276,7 +276,7 @@ func Start() {
 		// Name Variables
 		accountWithName, accountToPutNameOn, nameToSwap, claimOriginalName string = "", "", "", ""
 		// Client for sending the http requests
-		RequestClient *fasthttp.Client = Global.SetClient((&fasthttp.TCPDialer{Concurrency: 4096}).Dial)
+		RequestClient *fasthttp.Client = Global.SetClient()
 		// Waitgroup for goroutines
 		waitGroup *sync.WaitGroup = &sync.WaitGroup{}
 		// Boolean to check whether the name has been swapped or not

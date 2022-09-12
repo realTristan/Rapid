@@ -8,35 +8,28 @@ import "sync"
 // visit https://github.com/realTristan/GoQueue
 //////////////////////////////////////////////////////
 
-// Type Item interface{}
-//
-//	 The 'Item' Type is the type of variables that will be going inside the queue slice
-//	 The Item is declared as interface so it is possible to have multiple types
-//		   within the Queue Slice
-type Item interface{}
-
 // type ItemQueue struct
 //
 //	 The 'ItemQueue' Struct contains the []'Type Item interface{}' slice
 //	 This struct holds two keys,
-//	    - items -> the []'Type Item interface{}' slice
+//	    - items -> the []'Type interface{}' slice
 //	    - mutex -> the mutex lock which prevents overwrites and data corruption
 //				  ↳ We use RWMutex instead of Mutex as it's better for majority read slices
 type ItemQueue struct {
-	items []Item
+	items []interface{}
 	mutex *sync.RWMutex
 }
 
 // Create() -> *ItemQueue
 // The Create() function will return an empty ItemQueue
 func Create() *ItemQueue {
-	return &ItemQueue{mutex: &sync.RWMutex{}, items: []Item{}}
+	return &ItemQueue{mutex: &sync.RWMutex{}, items: []interface{}{}}
 }
 
 // q.Remove(Item) -> None
 // The Remove() function will secure the ItemQueue before iterating
 // through said ItemQueue and remove the given Item (_item)
-func (q *ItemQueue) Remove(item Item) {
+func (q *ItemQueue) Remove(item interface{}) {
 	// Lock/Unlock the mutex
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
@@ -52,7 +45,7 @@ func (q *ItemQueue) Remove(item Item) {
 
 // q.Put(Item) -> None
 // The Put() function is used to add a new item to the provided ItemQueue
-func (q *ItemQueue) Put(i Item) {
+func (q *ItemQueue) Put(i interface{}) {
 	// Lock/Unlock the mutex
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
@@ -65,9 +58,13 @@ func (q *ItemQueue) Put(i Item) {
 // The Get() function will append the first item of the ItemQueue to the back of the slice
 // then remove it from the front
 // The function returns the first item of the ItemQueue
-func (q *ItemQueue) Get() Item {
+func (q *ItemQueue) Get() interface{} {
+	// Lock/Unlock the mutex
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+
 	// Get the item from the queue
-	var item Item = q.items[0]
+	var item interface{} = q.items[0]
 
 	// Modify the queue
 	q.items = append(q.items, q.items[0])
@@ -80,13 +77,13 @@ func (q *ItemQueue) Get() Item {
 // q.Grab() -> Item
 // The Grab() function will return the first item of the ItemQueue then
 // remove it from said ItemQueue
-func (q *ItemQueue) Grab() Item {
+func (q *ItemQueue) Grab() interface{} {
 	// Lock/Unlock the mutex
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
 
 	// Grah the item from the queue
-	var item Item = q.items[0]
+	var item interface{} = q.items[0]
 	q.items = q.items[1:]
 
 	// Return the item
