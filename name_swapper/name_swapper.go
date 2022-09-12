@@ -145,13 +145,9 @@ func GetSession(RequestClient *fasthttp.Client, account string) (*fasthttp.Respo
 func NameRecover(RequestClient *fasthttp.Client, name string, accountWithName string, accountToPutNameOn string, speed float64) {
 	Global.SetProxy(RequestClient)
 
-	// Define Variables
-	var (
-		// Create a new account with the name needing recovery
-		resp, newAccount, err = Global.CreateUplayAccount(RequestClient, name, Global.JsonData["custom_claim_email"].(string))
-		// Create the claim string for writing to claimed.txt
-		claimString string = fmt.Sprintf("Name: %s ┃ Login: %s", name, newAccount)
-	)
+	// Create a new account with the name needing recovery
+	var resp, newAccount, err = Global.CreateUplayAccount(RequestClient, name, Global.JsonData["custom_claim_email"].(string))
+
 	defer fasthttp.ReleaseResponse(resp)
 
 	// If the name claim status code is 200 and the error is nil
@@ -159,7 +155,7 @@ func NameRecover(RequestClient *fasthttp.Client, name string, accountWithName st
 		// Set the current error to the name's new email and password
 		Global.CurrentError = fmt.Sprintf(" >> Swap Failed! \033[1;97m[\033[1;31m%s\033[1;97m] => \033[1;97m[\033[1;31m%s\033[1;97m]", name, newAccount)
 		// And write it to the claimed.txt file
-		go Global.WriteToFile("data/name_checker/claimed.txt", &claimString)
+		go Global.WriteToFile("data/name_checker/claimed.txt", fmt.Sprintf("Name: %s ┃ Login: %s", name, newAccount))
 	} else
 	// Increase the errorcount and set the current error
 	{
@@ -208,11 +204,11 @@ func GetAccountReplacementName(RequestClient *fasthttp.Client, AccountWithNameSe
 				// Send the http request
 				ValidNameResp, ValidNameErr = NameChecker.CheckNamesRequest(RequestClient, url, token)
 				// Store the response body
-				body string = string(ValidNameResp.Body())
+				body string = strings.ToLower(string(ValidNameResp.Body()))
 			)
 
 			// If the name is not available or an error has occured
-			if ValidNameResp.StatusCode() != 200 || ValidNameErr != nil || Global.Contains(&body, fmt.Sprintf("\"nameonplatform\":\"%s\"", name)) {
+			if ValidNameResp.StatusCode() != 200 || ValidNameErr != nil || strings.Contains(body, fmt.Sprintf("\"nameonplatform\":\"%s\"", name)) {
 				color.Printf("\033[97m ┃ \033[1;31mInvalid Name\n")
 
 				// Recall the function (loop)
@@ -246,18 +242,13 @@ func CanCreateNewAccounts(RequestClient *fasthttp.Client, claimOriginalName stri
 // This function is only called if the user provided a "y"
 // in the Claim Original Name: input
 func ClaimOriginalName(RequestClient *fasthttp.Client, claimOriginalName_Name string) {
-	// Define Variables
-	var (
-		// Create a new uplay account with the name on it
-		resp, newAccount, err = Global.CreateUplayAccount(RequestClient, claimOriginalName_Name, Global.JsonData["custom_claim_email"].(string))
-		// The claim string that will be used for writing in the claimed.txt file
-		claimString string = fmt.Sprintf("Name: %s ┃ Login: %s", claimOriginalName_Name, newAccount)
-	)
+	// Create a new uplay account with the name on it
+	var resp, newAccount, err = Global.CreateUplayAccount(RequestClient, claimOriginalName_Name, Global.JsonData["custom_claim_email"].(string))
 
 	// If there are no errors and the response status code is 200 (success)
 	if resp.StatusCode() == 200 && err == nil {
 		// Write to the claimed file and send success message
-		go Global.WriteToFile("data/name_checker/claimed.txt", &claimString)
+		go Global.WriteToFile("data/name_checker/claimed.txt", fmt.Sprintf("Name: %s ┃ Login: %s", claimOriginalName_Name, newAccount))
 		fmt.Printf("\n \033[1;32m >> Successfully Claimed \033[1;97m[\033[1;32m%s\033[1;97m] => \033[1;97m[\033[1;32m%s\033[1;97m]", claimOriginalName_Name, newAccount)
 	} else
 

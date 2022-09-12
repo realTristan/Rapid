@@ -1,6 +1,6 @@
 package queue
 
-// Import Packages
+// Import sync Package
 import "sync"
 
 //////////////////////////////////////////////////////
@@ -20,13 +20,11 @@ type ItemQueue struct {
 	mutex *sync.RWMutex
 }
 
-// Create() -> *ItemQueue
 // The Create() function will return an empty ItemQueue
 func Create() *ItemQueue {
 	return &ItemQueue{mutex: &sync.RWMutex{}, items: []interface{}{}}
 }
 
-// q.Remove(Item) -> None
 // The Remove() function will secure the ItemQueue before iterating
 // through said ItemQueue and remove the given Item (_item)
 func (q *ItemQueue) Remove(item interface{}) {
@@ -43,7 +41,6 @@ func (q *ItemQueue) Remove(item interface{}) {
 	}
 }
 
-// q.Put(Item) -> None
 // The Put() function is used to add a new item to the provided ItemQueue
 func (q *ItemQueue) Put(i interface{}) {
 	// Lock/Unlock the mutex
@@ -54,7 +51,6 @@ func (q *ItemQueue) Put(i interface{}) {
 	q.items = append(q.items, i)
 }
 
-// q.Get() -> Item
 // The Get() function will append the first item of the ItemQueue to the back of the slice
 // then remove it from the front
 // The function returns the first item of the ItemQueue
@@ -74,7 +70,6 @@ func (q *ItemQueue) Get() interface{} {
 	return item
 }
 
-// q.Grab() -> Item
 // The Grab() function will return the first item of the ItemQueue then
 // remove it from said ItemQueue
 func (q *ItemQueue) Grab() interface{} {
@@ -90,7 +85,6 @@ func (q *ItemQueue) Grab() interface{} {
 	return item
 }
 
-// q.IsNotEmpty() -> bool
 // The IsNotEmpty() function will return whether the provided ItemQueue contains any Items
 func (q *ItemQueue) IsNotEmpty() bool {
 
@@ -102,7 +96,6 @@ func (q *ItemQueue) IsNotEmpty() bool {
 	return len(q.items) > 0
 }
 
-// q.Size() -> int
 // The Size() function will return the length of the ItemQueue slice
 func (q *ItemQueue) Size() int {
 

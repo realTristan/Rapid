@@ -3,16 +3,16 @@ package global
 // Import Packages
 import (
 	"bufio"
+	"bytes"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
+	Queue "rapid_name_claimer/queue"
 	"strings"
 	"time"
-
-	Queue "rapid_name_claimer/queue"
 
 	"github.com/valyala/fasthttp"
 )
@@ -39,11 +39,6 @@ var (
 	RapidLogoString    string = "\033[1;34m\n ┃ ██████╗  █████╗ ██████╗ ██╗██████╗\n ┃ ██╔══██╗██╔══██╗██╔══██╗██║██╔══██╗\n ┃ ██████╔╝███████║██████╔╝██║██║  ██║\n ┃ ██╔══██╗██╔══██║██╔═══╝ ██║██║  ██║\n ┃ ██║  ██║██║  ██║██║     ██║██████╔╝\n ┃ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝╚═════╝"
 )
 
-// Function to check if a string contains another
-func Contains(a *string, b interface{}) bool {
-	return strings.Contains(strings.ToLower(fmt.Sprint(*a)), strings.ToLower(fmt.Sprint(b)))
-}
-
 // Function to check if char is alpha
 func IsAlphaChar(char rune) bool {
 	return (char >= 'a' && char <= 'z') || (char >= 'A' && char <= 'Z')
@@ -59,14 +54,14 @@ func BoolToInt(b bool) int {
 
 // Function to check if uplay name is valid
 func IsValidUplayName(name string) bool {
-	var bannedNames string = string(BannedNames)
-	return len(name) > 2 && IsAlphaChar(rune(name[0])) && !Contains(&bannedNames, name)
+	var bannedNames []byte = bytes.ToLower(BannedNames)
+	return len(name) > 2 && IsAlphaChar(rune(name[0])) && !bytes.Contains(bannedNames, []byte(name))
 }
 
 // The AddToQueue() function is used to read each line in
 // the provided file and add each line to it's corresponding
 // queue. (which was provided in the func params)
-func AddToQueue(queue *Queue.ItemQueue, fileName string) *Queue.ItemQueue {
+func AddToQueue(q *Queue.ItemQueue, fileName string) *Queue.ItemQueue {
 	var file *bufio.Scanner = ReadFile(fileName)
 
 	// Iterate over the files lines
@@ -75,10 +70,10 @@ func AddToQueue(queue *Queue.ItemQueue, fileName string) *Queue.ItemQueue {
 
 		// If value is not invalid add it to the queue
 		if len(value) > 0 {
-			queue.Put(value)
+			q.Put(value)
 		}
 	}
-	return queue
+	return q
 }
 
 // The FileNewLineCount() function is used to count
@@ -131,16 +126,16 @@ func ReadFile(fileName string) *bufio.Scanner {
 
 // The WriteToFile() function is used to append the
 // provided data to the provided file
-func WriteToFile(fileName string, data *string) {
+func WriteToFile(fileName string, data string) {
 	// Open the file
 	var file, err = os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, 0644)
 
 	// Set the CurrentError if any errors have occured
 	if err != nil {
-		CurrentError = fmt.Sprintf(" >> Write To File Error: %s: %s: %v", fileName, *data, err)
+		CurrentError = fmt.Sprintf(" >> Write To File Error: %s: %s: %v", fileName, data, err)
 	} else {
 		// Write the data to the file
-		file.WriteString("\n" + *data)
+		file.WriteString("\n" + data)
 	}
 	// Close the file
 	file.Close()
@@ -309,30 +304,25 @@ func CreateUplayAccount(RequestClient *fasthttp.Client, name string, customEmail
 		// Send the http request
 		err error = RequestClient.DoTimeout(req, resp, time.Second*6)
 		// Store the request body in a string variable
-		body string = string(resp.Body())
+		body string = strings.ToLower(string(resp.Body()))
 	)
 
 	// If the Name is Banned
-	if Contains(&body, "severity") {
+	if strings.Contains(body, "severity") {
 		// Write it to the banned_names.txt file
-		go WriteToFile("data/name_checker/banned_names.txt", &name)
-	} else {
-		// If the status code is 200 (success) and no errors occured
-		if resp.StatusCode() == 200 && err == nil {
-			// Write the token to the data/tokens/tokens.txt file
-			// using a goroutine for maximum efficiency
-			go func() {
-				// Unmarshal the data
-				var jsonData map[string]interface{}
-				json.Unmarshal([]byte(body), &jsonData)
+		WriteToFile("data/name_checker/banned_names.txt", name)
+	} else
 
-				// If the ticket isn't empty/nil
-				if jsonData["ticket"] != nil {
-					// Write it to the tokens.txt file
-					var ubiTicket string = "Ubi_v1 t=" + jsonData["ticket"].(string)
-					go WriteToFile("data/tokens/tokens.txt", &ubiTicket)
-				}
-			}()
+	// If the status code is 200 (success) and no errors occured
+	if resp.StatusCode() == 200 && err == nil {
+		// Write the token to the data/tokens/tokens.txt file
+		var jsonData map[string]interface{}
+		json.Unmarshal([]byte(body), &jsonData)
+
+		// If the ticket isn't empty/nil
+		if jsonData["ticket"] != nil {
+			// Write it to the tokens.txt file
+			WriteToFile("data/tokens/tokens.txt", "Ubi_v1 t="+jsonData["ticket"].(string))
 		}
 	}
 	// Return the response object, the account with the name on it, and any errors

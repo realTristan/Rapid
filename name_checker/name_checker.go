@@ -156,16 +156,17 @@ func HandleResponse(RequestClient *fasthttp.Client, resp *fasthttp.Response, url
 	defer fasthttp.ReleaseResponse(resp)
 
 	// Handle Response
-	var body string = string(resp.Body())
+	var body string = strings.ToLower(string(resp.Body()))
 	for i := 0; i < len(names); i++ {
 		// Check if the body contains the name
-		if !Global.Contains(&body, fmt.Sprintf("\"nameonplatform\":\"%s\"", (names)[i])) {
-			availableNameCount++
-
+		if !strings.Contains(body, fmt.Sprintf("\"nameonplatform\":\"%s\"", (names)[i])) {
 			// If it doesn't , claim the name and write the name
 			// to the available.txt file
 			go ClaimName(RequestClient, (names)[i])
+
+			// Mark availability
 			availableFile.WriteString("\n" + (names)[i])
+			availableNameCount++
 		}
 	}
 }
@@ -244,13 +245,13 @@ func Start(threadCount int) {
 				// Check whether the token is expired or if there's been to many calls per profile
 				// If there has, then get a new token from an existing token account
 				if tokenRefreshing && (resp.StatusCode() != 200 || (totalRequests-1)%(100*len(names)) == 0) {
-					go GenerateNewToken(RequestClient, token)
-				} else
+					GenerateNewToken(RequestClient, token)
+				}
 
 				// if the error is nil and the status code is 200
 				if err == nil && resp.StatusCode() == 200 {
 					// Handle the response
-					go HandleResponse(RequestClient, resp, url, names)
+					HandleResponse(RequestClient, resp, url, names)
 
 				} else {
 					// Set the current error

@@ -93,7 +93,7 @@ func main() {
 	// Get Thread Count
 	if option == 1 || option == 3 {
 		// If the inputted threadcount is 0 or greater than 100
-		for threadCount > 100 || threadCount < 1 {
+		for threadCount > 1000 || threadCount < 1 {
 			color.Printf("\033[H\033[2J%s\n\033[1;34m ┃ \033[1;31mMax 100 Threads\n\n\033[97m ┃ How many threads?\033[1;34m ", Global.RapidLogoString)
 			fmt.Scan(&threadCount)
 		}
