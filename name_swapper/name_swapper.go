@@ -155,7 +155,7 @@ func NameRecover(RequestClient *fasthttp.Client, name string, accountWithName st
 		// Set the current error to the name's new email and password
 		Global.CurrentError = fmt.Sprintf(" >> Swap Failed! \033[1;97m[\033[1;31m%s\033[1;97m] => \033[1;97m[\033[1;31m%s\033[1;97m]", name, newAccount)
 		// And write it to the claimed.txt file
-		go Global.WriteToFile("data/name_checker/claimed.txt", fmt.Sprintf("Name: %s ┃ Login: %s", name, newAccount))
+		Global.WriteToFile("data/name_checker/claimed.txt", fmt.Sprintf("Name: %s ┃ Login: %s", name, newAccount))
 	} else
 	// Increase the errorcount and set the current error
 	{
@@ -248,14 +248,12 @@ func ClaimOriginalName(RequestClient *fasthttp.Client, claimOriginalName_Name st
 	// If there are no errors and the response status code is 200 (success)
 	if resp.StatusCode() == 200 && err == nil {
 		// Write to the claimed file and send success message
-		go Global.WriteToFile("data/name_checker/claimed.txt", fmt.Sprintf("Name: %s ┃ Login: %s", claimOriginalName_Name, newAccount))
+		Global.WriteToFile("data/name_checker/claimed.txt", fmt.Sprintf("Name: %s ┃ Login: %s", claimOriginalName_Name, newAccount))
 		fmt.Printf("\n \033[1;32m >> Successfully Claimed \033[1;97m[\033[1;32m%s\033[1;97m] => \033[1;97m[\033[1;32m%s\033[1;97m]", claimOriginalName_Name, newAccount)
-	} else
-
-	// Send the failed to claim message
-	{
-		fmt.Printf("\n \033[1;31m >> Failed to Claim \033[1;97m%s\n\033[1;31m%d: %v: %s", claimOriginalName_Name, resp.StatusCode(), err, string(resp.Body()))
+		return
 	}
+	// Send error message
+	fmt.Printf("\n \033[1;31m >> Failed to Claim \033[1;97m%s\n\033[1;31m%d: %v: %s", claimOriginalName_Name, resp.StatusCode(), err, string(resp.Body()))
 }
 
 // The Start() function is used to call all of the

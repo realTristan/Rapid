@@ -106,7 +106,7 @@ func GenerateNameUrls() {
 	// Replace all the invalid names from names.txt
 	// with only the valid ones
 	if len(nameFileReplacement) > 0 {
-		go Global.OverwriteToFile("data/name_checker/names.txt", &nameFileReplacement)
+		Global.OverwriteToFile("data/name_checker/names.txt", &nameFileReplacement)
 	}
 }
 

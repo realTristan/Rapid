@@ -85,7 +85,7 @@ func HandleValidateResponse(RequestClient *fasthttp.Client, account string) {
 	// If no errors occured and the response status code is 200 (success)
 	if resp.StatusCode() == 200 && err == nil {
 		// Write the combo to the hits.txt file
-		go Global.WriteToFile("data/account_checker/hits.txt", account)
+		Global.WriteToFile("data/account_checker/hits.txt", account)
 		hitCount++
 	} else {
 		// Set the current error if the error isn't nil

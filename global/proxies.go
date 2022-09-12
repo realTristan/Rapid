@@ -187,6 +187,6 @@ func SetProxiesToCorrectFormat() {
 	// Replace all the proxies in the proxies file
 	// with the newly formatted ones
 	if len(result) > 0 {
-		go OverwriteToFile("data/proxies.txt", &result)
+		OverwriteToFile("data/proxies.txt", &result)
 	}
 }
