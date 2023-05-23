@@ -5,7 +5,7 @@
 - This was made for Educational Purposes Only
 - Rapid Claimer is a lightning fast and easy-to-use ubisoft name claimer, account checker and name swapper. Follow the steps below to get started with using it! 
 
-# Name Claimer Usage
+# How to use
 **1.** If you have proxies, add them to the data/name_checker/proxies.txt file
 <br>
 
@@ -43,10 +43,6 @@
 &nbsp; &nbsp; &nbsp; &nbsp; ↳ Available names will appear in data/name_checker/available.txt
 <br>
 &nbsp; &nbsp; &nbsp; &nbsp; ↳ Claimed names will appear in data/name_checker/claimed.txt
-
-# MongoDB
-![Capture](https://user-images.githubusercontent.com/75189508/187750772-7b531072-983c-4636-9bf3-9a86c80d80dc.PNG)
-![Capture2](https://user-images.githubusercontent.com/75189508/187750774-6b74e120-336f-49cf-8a1a-ae19bbd6d452.PNG)
 
 # License
 MIT License
